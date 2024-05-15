@@ -1,0 +1,17 @@
+{
+  "first_instance_index": 1,
+  "last_instance_index": 1,
+  "instances_directory_path": "../../Instances/Set10/",
+  "instance_file_name": "instance",
+  "results_directory": "../../Result/",
+  "verbose": true,
+  "nb_of_thread": 4,
+  "use_gurobi": false,
+  "use_cplex": true,
+  "use_cp": false,
+  "check_solution": true,
+  "draw_gantt_chart": true,
+  "max_runtime": 60,
+  "init_ilp_solution": false,
+  "ilp_relative_gap": 0
+}
