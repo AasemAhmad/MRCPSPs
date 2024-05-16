@@ -135,7 +135,7 @@ void ConstraintModelBuilder::add_precedence_constraints(const TimeIndexedModelVa
     LOG_F(INFO, "%s finished successfully", __FUNCTION__);
 }
 
-void ConstraintModelBuilder::add_renewable_resource_constraint(const TimeIndexedModelVariableMapping::map3to1 &x)
+void ConstraintModelBuilder::add_renewable_resource_constraints(const TimeIndexedModelVariableMapping::map3to1 &x)
 {
     LOG_F(INFO, "%s started", __FUNCTION__);
 

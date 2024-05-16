@@ -36,7 +36,7 @@ class TimeIndexedModelVariableMapping
     void add_task_startime_binary_variables();
     void add_task_processing_time_variables();
     void add_task_startime_variable();
-    void add_task_computer_resources_allocation_variables();
+    void add_task_resources_allocation_variables();
 };
 
 TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solution,

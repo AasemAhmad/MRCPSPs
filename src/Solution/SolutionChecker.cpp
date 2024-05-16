@@ -33,9 +33,9 @@ bool SolutionChecker::check_job_selected_processing_time() const
         std::string job_id = job_allocation.job_id;
         auto job = this->problem_instance.job_queue.find_item<std::string>(job_id);
         PPK_ASSERT_ERROR(job != nullptr, "Job cannot be found");
-        PPK_ASSERT_ERROR(mode_index < job->modes.size(), "mode index exceed the size of the job modes");
+        PPK_ASSERT_ERROR(mode_index < job->modes.size(), "Invalid Value %ld", mode_index);
         PPK_ASSERT_ERROR(job->modes.at(mode_index).processing_time == job_allocation.duration,
-                         "Sellected processing time doesnot match with the selected mode");
+                         "Sellected processing time does not match with the selected mode");
     }
     return true;
 }
@@ -44,15 +44,17 @@ bool SolutionChecker::check_resouce_usage_at_given_time(std::vector<JobAllocatio
 {
     std::vector<size_t> consumed_capacity(this->problem_instance.resources.size(), 0);
 
-    for (auto it = allocations.begin(); it != allocations.end() && it->start_time < time;)
+    PPK_ASSERT_ERROR(allocations.size() > 0, "job allocation is empty");
+
+    for (auto it = allocations.begin(); it != allocations.end();)
     {
         if ((it->start_time <= time) && (it->start_time + it->duration > time))
         {
             std::shared_ptr<Job> job = this->problem_instance.job_queue.find_item(it->job_id);
             PPK_ASSERT_ERROR(job != nullptr, "Job was not found");
-            PPK_ASSERT_ERROR(it->mode_id > 0, "mode id must be greater than 0");
+            PPK_ASSERT_ERROR(it->mode_id > 0, "Invalid value %ld", it->mode_id);
             size_t mode_index = it->mode_id - 1;
-            PPK_ASSERT_ERROR(mode_index < job->modes.size(), "mode_index exceed the size of the job modes");
+            PPK_ASSERT_ERROR(mode_index < job->modes.size(), "Invalid value %ld", mode_index);
             for (size_t i = 0; i < this->problem_instance.resources.size(); ++i)
             {
                 consumed_capacity[i] += job->modes.at(mode_index).requested_resources.at(i).units;

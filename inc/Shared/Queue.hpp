@@ -26,57 +26,57 @@ template <typename SortableElement> class Queue
     int nb_items() const;
 
   private:
-    std::list<std::shared_ptr<SortableElement>> _elements;
+    std::list<std::shared_ptr<SortableElement>> elements;
 };
 
 template <typename SortableElement> Queue<SortableElement>::Queue() {}
 
-template <typename SortableElement> Queue<SortableElement>::~Queue() { this->_elements.clear(); }
+template <typename SortableElement> Queue<SortableElement>::~Queue() { this->elements.clear(); }
 
 template <typename SortableElement> auto Queue<SortableElement>::begin() -> SortableElementIterator
 {
-    return _elements.begin();
+    return elements.begin();
 }
 
 template <typename SortableElement> auto Queue<SortableElement>::end() -> SortableElementIterator
 {
-    return _elements.end();
+    return elements.end();
 }
 
 template <typename SortableElement>
 auto Queue<SortableElement>::begin() const -> SortableElementConstIterator
 {
-    return _elements.begin();
+    return elements.begin();
 }
 
 template <typename SortableElement>
 auto Queue<SortableElement>::end() const -> SortableElementConstIterator
 {
-    return _elements.end();
+    return elements.end();
 }
 
 template <typename SortableElement>
 auto Queue<SortableElement>::cbegin() const -> SortableElementConstIterator
 {
-    return _elements.cbegin();
+    return elements.cbegin();
 }
 
 template <typename SortableElement>
 auto Queue<SortableElement>::cend() const -> SortableElementConstIterator
 {
-    return _elements.cend();
+    return elements.cend();
 }
 
 template <typename SortableElement> void Queue<SortableElement>::append_item(std::shared_ptr<SortableElement> element)
 {
-    _elements.push_back(element);
+    elements.push_back(element);
 }
 
 template <typename SortableElement>
 template <typename ElementIDType>
 std::shared_ptr<SortableElement> Queue<SortableElement>::find_item(const ElementIDType &id) const
 {
-    for (const auto &element : _elements)
+    for (const auto &element : elements)
     {
         if (element->get_id() == id)
         {
@@ -91,9 +91,9 @@ template <typename CompareFunc>
 void Queue<SortableElement>::sort_queue(CompareFunc compareFunc)
 {
     // std::sort(_elements.begin(), _elements.end(), compareFunc);
-    _elements.sort(compareFunc);
+    elements.sort(compareFunc);
 }
 
-template <typename SortableElement> bool Queue<SortableElement>::is_empty() const { return _elements.empty(); }
+template <typename SortableElement> bool Queue<SortableElement>::is_empty() const { return elements.empty(); }
 
-template <typename SortableElement> int Queue<SortableElement>::nb_items() const { return _elements.size(); }
+template <typename SortableElement> int Queue<SortableElement>::nb_items() const { return elements.size(); }

@@ -24,7 +24,7 @@ TimeIndexedModelVariableMapping::TimeIndexedModelVariableMapping(const ProblemIn
     this->add_task_startime_variable();
     this->add_task_processing_time_variables();
     this->add_task_startime_binary_variables();
-    this->add_task_computer_resources_allocation_variables();
+    this->add_task_resources_allocation_variables();
 }
 
 size_t TimeIndexedModelVariableMapping::get_nb_variables() const
@@ -44,24 +44,24 @@ void TimeIndexedModelVariableMapping::add_task_processing_time_variables()
 {
     size_t idx = get_nb_variables();
 
-    for (auto it = this->problem_instance.job_queue.cbegin(); it != this->problem_instance.job_queue.cend(); ++it)
+    for (const auto &job : this->problem_instance.job_queue)
     {
-        DecisionVariable var(DecisionVariableType::INT, 0, calcualte_processing_time_upperbound(*it));
+        DecisionVariable var(DecisionVariableType::INT, 0, calcualte_processing_time_upperbound(job));
         variables.push_back(var);
-        var_desc.emplace_back("p_{" + (*it)->j_id + "}");
-        set_value(p, (*it)->j_id, idx++, __FUNCTION__);
+        var_desc.emplace_back("p_{" + job->j_id + "}");
+        set_value(p, job->j_id, idx++, __FUNCTION__);
     }
 }
 
 void TimeIndexedModelVariableMapping::add_task_startime_variable()
 {
     size_t idx = get_nb_variables();
-    for (auto it = this->problem_instance.job_queue.cbegin(); it != this->problem_instance.job_queue.cend(); ++it)
+    for (const auto &job : this->problem_instance.job_queue)
     {
         DecisionVariable var(DecisionVariableType::INT, 0, problem_instance.makespan_upperbound);
         variables.push_back(var);
-        var_desc.emplace_back("s_{" + (*it)->j_id + "}");
-        set_value(s, {(*it)->j_id}, idx++, __FUNCTION__);
+        var_desc.emplace_back("s_{" + job->j_id + "}");
+        set_value(s, {job->j_id}, idx++, __FUNCTION__);
     }
 }
 
@@ -69,26 +69,26 @@ void TimeIndexedModelVariableMapping::add_task_startime_binary_variables()
 {
     size_t idx = get_nb_variables();
 
-    for (auto it = this->problem_instance.job_queue.cbegin(); it != this->problem_instance.job_queue.cend(); ++it)
+    for (const auto &job : this->problem_instance.job_queue)
     {
         for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
         {
             size_t mode_id = 1;
-            for (const auto &mode : (*it)->modes)
+            for (const auto &mode : job->modes)
             {
-                PPK_ASSERT_ERROR(mode_id <= (*it)->modes.size(), "Invalid value %ld", mode_id);
+                PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
                 DecisionVariable var(DecisionVariableType::BIN, 0.0, 1.0);
                 variables.push_back(var);
-                var_desc.emplace_back("x_{" + (*it)->j_id + "}#{" + std::to_string(mode_id) + "}#{" +
-                                      std::to_string(t) + "}");
-                set_value(x, {(*it)->j_id, std::to_string(mode_id), std::to_string(t)}, idx++, __FUNCTION__);
+                var_desc.emplace_back("x_{" + job->j_id + "}#{" + std::to_string(mode_id) + "}#{" + std::to_string(t) +
+                                      "}");
+                set_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, idx++, __FUNCTION__);
                 ++mode_id;
             }
         }
     }
 }
 
-void TimeIndexedModelVariableMapping::add_task_computer_resources_allocation_variables()
+void TimeIndexedModelVariableMapping::add_task_resources_allocation_variables()
 {
     // TODO if necessary
 }

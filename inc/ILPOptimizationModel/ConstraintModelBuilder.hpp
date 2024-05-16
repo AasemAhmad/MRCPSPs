@@ -30,7 +30,7 @@ class ConstraintModelBuilder
     void add_precedence_constraints(const TimeIndexedModelVariableMapping::map1to1 &s,
                                     const TimeIndexedModelVariableMapping::map1to1 &p);
 
-    void add_renewable_resource_constraint(const TimeIndexedModelVariableMapping::map3to1 &x);
+    void add_renewable_resource_constraints(const TimeIndexedModelVariableMapping::map3to1 &x);
 
     void add_constraint(SparseMatrix<double>::Row &row, Operator op, const double &b, const std::string &conDesc);
 

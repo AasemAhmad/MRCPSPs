@@ -30,8 +30,8 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     solution_ilp = solver->solve_ilp(init_solution, ilp_model, Settings::SolverSettings::VERBOSE, rel_gap, time_limit,
                                      Settings::SolverSettings::NB_THREADS);
 
-    solution.runtime =
-        duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start).count();
+    using chrono_clk = std::chrono::high_resolution_clock;
+    solution.runtime = duration_cast<std::chrono::duration<double>>(chrono_clk::now() - start).count();
     solution.solution_state = convert(solution_ilp.status);
 
     if (solution_ilp.status == MODEL_STATUS::MODEL_SOL_OPTIMAL ||
@@ -74,7 +74,7 @@ void ProblemSolverILP::construct(ConstraintModelBuilder &constraint_model_builde
 
     constraint_model_builder.add_precedence_constraints(variable_mapping_ilp.s, variable_mapping_ilp.p);
 
-    constraint_model_builder.add_renewable_resource_constraint(variable_mapping_ilp.x);
+    constraint_model_builder.add_renewable_resource_constraints(variable_mapping_ilp.x);
 
     ilp_model.vector_c.resize(variable_mapping_ilp.get_nb_variables(), 0.0);
     ilp_model.vector_c[0] = 1;
