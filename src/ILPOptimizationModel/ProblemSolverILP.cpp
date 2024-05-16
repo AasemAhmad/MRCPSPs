@@ -18,17 +18,17 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     std::unique_ptr<Solver> solver;
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-    if (Settings::SolverSettings::USE_GUROBI)
+    if (Settings::Solver::USE_GUROBI)
     {
         solver = std::make_unique<GurobiSolver>();
         solver->initialize_local_environments(1u);
-    } else if (Settings::SolverSettings::USE_CPLEX)
+    } else if (Settings::Solver::USE_CPLEX)
     {
         solver = std::make_unique<CplexSolver>();
     }
 
-    solution_ilp = solver->solve_ilp(init_solution, ilp_model, Settings::SolverSettings::VERBOSE, rel_gap, time_limit,
-                                     Settings::SolverSettings::NB_THREADS);
+    solution_ilp = solver->solve_ilp(init_solution, ilp_model, Settings::Solver::VERBOSE, rel_gap, time_limit,
+                                     Settings::Solver::NB_THREADS);
 
     using chrono_clk = std::chrono::high_resolution_clock;
     solution.runtime = duration_cast<std::chrono::duration<double>>(chrono_clk::now() - start).count();
@@ -83,7 +83,7 @@ void ProblemSolverILP::construct(ConstraintModelBuilder &constraint_model_builde
     ilp_model.varDesc = move(variable_mapping_ilp.var_desc);
     constraint_model_builder.move_constraints_to_model(ilp_model);
 
-    if (Settings::SolverSettings::VERBOSE == true)
+    if (Settings::Solver::VERBOSE == true)
     {
         ilp_model.log_statistics();
     }

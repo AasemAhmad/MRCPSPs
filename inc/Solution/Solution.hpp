@@ -14,7 +14,7 @@ enum class SolutionState
 };
 
 SolutionState convert(const MODEL_STATUS &ilp_status);
-std::string convert_solution_state_to_string(const SolutionState& solution_state);
+std::string convert_solution_state_to_string(const SolutionState &solution_state);
 
 struct JobAllocation
 {
@@ -33,13 +33,13 @@ struct Solution
     Solution() : solution_state(SolutionState::UNKNOWN), makespan(0.0), runtime(-1.0), mem_usage(-1.0) {}
 
     SolutionState solution_state;
-    double gap = Settings::SolverSettings::ILP_RELATIVE_GAP;
+    double gap = Settings::Solver::ILP_RELATIVE_GAP;
     double objective_bound = -1;
     size_t makespan;
     double runtime;
     double mem_usage;
     std::vector<JobAllocation> job_allocations;
-    void inverse_allocated_resouces(const ProblemInstance& problem_instance);
+    void inverse_allocated_resouces(const ProblemInstance &problem_instance);
     operator std::string() const;
 };
 

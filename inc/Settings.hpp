@@ -11,7 +11,7 @@ namespace Settings
     extern size_t LAST_INSTANCE_INDEX;
     extern std::string INSTANCE_NAME;
 
-    namespace GeneratorSettings
+    namespace Generator
     {
         extern size_t NB_RESOURCES;
         extern size_t MAX_RESOURCE_CAPACITY;
@@ -25,9 +25,9 @@ namespace Settings
         extern size_t MIN_EXECUTION_TIME;
         extern size_t MAX_NB_RESOURCE_UNITS_PER_JOB;
         extern size_t MIN_NB_RESOURCE_UNITS_PER_JOB;
-    } // namespace GeneratorSettings
+    } // namespace Generator
 
-    namespace SolverSettings
+    namespace Solver
     {
         extern std::string RESULTS_DIRECTORY;
         extern bool VERBOSE;
@@ -42,5 +42,5 @@ namespace Settings
         extern bool INIT_ILP_SOLUTION;
         extern double ILP_RELATIVE_GAP;
         extern bool INIT_SOLUTION;
-    } // namespace SolverSettings
+    } // namespace Solver
 } // namespace Settings

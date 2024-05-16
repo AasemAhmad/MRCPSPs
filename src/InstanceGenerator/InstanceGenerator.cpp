@@ -32,7 +32,7 @@ void InstanceGenerator::generated_data_to_json_file()
     document.AddMember("res_units", resources, document.GetAllocator());
 
     rapidjson::Value jobs(rapidjson::kArrayType);
-    for (size_t i = 0; i < Settings::GeneratorSettings::NB_JOBS; ++i)
+    for (size_t i = 0; i < Settings::Generator::NB_JOBS; ++i)
     {
         InstanceGenerator::JobModes job_modes = this->generate_job_modes(resources_data);
         rapidjson::Value job(rapidjson::kObjectType);
@@ -88,12 +88,12 @@ void InstanceGenerator::generated_data_to_json_file()
 
 InstanceGenerator::ResourceUnits InstanceGenerator::generate_resource_units() const
 {
-    std::vector<size_t> resource_units(Settings::GeneratorSettings::NB_RESOURCES);
+    std::vector<size_t> resource_units(Settings::Generator::NB_RESOURCES);
 
-    for (size_t i = 0; i < Settings::GeneratorSettings::NB_RESOURCES; ++i)
+    for (size_t i = 0; i < Settings::Generator::NB_RESOURCES; ++i)
     {
-        resource_units[i] = random_range(Settings::GeneratorSettings::MIN_RESOURCE_CAPACITY,
-                                         Settings::GeneratorSettings::MAX_RESOURCE_CAPACITY);
+        resource_units[i] =
+            random_range(Settings::Generator::MIN_RESOURCE_CAPACITY, Settings::Generator::MAX_RESOURCE_CAPACITY);
     }
 
     return resource_units;
@@ -102,7 +102,7 @@ InstanceGenerator::ResourceUnits InstanceGenerator::generate_resource_units() co
 InstanceGenerator::Dependecies InstanceGenerator::generate_dependencies() const
 {
     InstanceGenerator::Dependecies dependencies;
-    size_t nb_nodes = Settings::GeneratorSettings::NB_JOBS;
+    size_t nb_nodes = Settings::Generator::NB_JOBS;
 
     PPK_ASSERT_ERROR(nb_nodes > 1, "number of jobs must be strictly positive");
 
@@ -118,8 +118,8 @@ InstanceGenerator::Dependecies InstanceGenerator::generate_dependencies() const
         int current = q.front();
         q.pop();
 
-        size_t nb_child_nodes = random_range(Settings::GeneratorSettings::MIN_NB_SUCCESSORS,
-                                             Settings::GeneratorSettings::MAX_NB_SUCCESSORS);
+        size_t nb_child_nodes =
+            random_range(Settings::Generator::MIN_NB_SUCCESSORS, Settings::Generator::MAX_NB_SUCCESSORS);
 
         nb_child_nodes = std::min(nb_child_nodes, nb_nodes - nb_created_nodes);
 
@@ -141,8 +141,8 @@ InstanceGenerator::generate_processing_times(const InstanceGenerator::JobModes &
     std::vector<size_t> resources_per_mode;
     std::transform(job_modes.begin(), job_modes.end(), std::back_inserter(resources_per_mode),
                    [](const std::vector<size_t> &row) { return std::accumulate(row.begin(), row.end(), 0); });
-    size_t optimal_execution_time_value = random_range(Settings::GeneratorSettings::MIN_EXECUTION_TIME,
-                                                       Settings::GeneratorSettings::MAX_EXECUTION_TIME / 2);
+    size_t optimal_execution_time_value =
+        random_range(Settings::Generator::MIN_EXECUTION_TIME, Settings::Generator::MAX_EXECUTION_TIME / 2);
 
     auto max_nb_nodes = std::max_element(resources_per_mode.begin(), resources_per_mode.end());
 
@@ -151,9 +151,9 @@ InstanceGenerator::generate_processing_times(const InstanceGenerator::JobModes &
     for (size_t i = 0; i < resources_per_mode.size(); ++i)
     {
         double normalized_value = static_cast<double>(resources_per_mode[i]) / *max_nb_nodes;
-        processing_times[i] = Settings::GeneratorSettings::MAX_EXECUTION_TIME -
-                              std::ceil(normalized_value * (Settings::GeneratorSettings::MAX_EXECUTION_TIME -
-                                                            optimal_execution_time_value));
+        processing_times[i] =
+            Settings::Generator::MAX_EXECUTION_TIME -
+            std::ceil(normalized_value * (Settings::Generator::MAX_EXECUTION_TIME - optimal_execution_time_value));
     }
     return processing_times;
 }
@@ -161,22 +161,21 @@ InstanceGenerator::generate_processing_times(const InstanceGenerator::JobModes &
 InstanceGenerator::JobModes
 InstanceGenerator::generate_job_modes(const InstanceGenerator::ResourceUnits &resource_units) const
 {
-    std::size_t nb_modes =
-        random_range(Settings::GeneratorSettings::MIN_NB_MODES, Settings::GeneratorSettings::MAX_NB_MODES);
+    std::size_t nb_modes = random_range(Settings::Generator::MIN_NB_MODES, Settings::Generator::MAX_NB_MODES);
 
-    const size_t nb_resources = Settings::GeneratorSettings::NB_RESOURCES;
+    const size_t nb_resources = Settings::Generator::NB_RESOURCES;
 
     InstanceGenerator::JobModes job_modes;
     job_modes.reserve(nb_modes);
 
-    LOG_F(INFO, "MIN_NB_RESOURCE_UNITS_PER_JOB %ld", Settings::GeneratorSettings::MIN_NB_RESOURCE_UNITS_PER_JOB);
+    LOG_F(INFO, "MIN_NB_RESOURCE_UNITS_PER_JOB %ld", Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB);
 
     for (size_t i = 0; i < nb_modes;)
     {
         std::vector<size_t> mode(nb_resources);
         for (size_t j = 0; j < nb_resources; ++j)
         {
-            mode[j] = random_range(Settings::GeneratorSettings::MIN_NB_RESOURCE_UNITS_PER_JOB, resource_units[j]);
+            mode[j] = random_range(Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB, resource_units[j]);
         }
 
         bool no_resource_units_requested =

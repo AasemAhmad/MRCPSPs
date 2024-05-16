@@ -9,7 +9,7 @@ namespace Settings
     #define DEFAULT_LAST_INSTANCE_INDEX      10
     #define DEFAULT_INSTANCE_NAME            "instance"
 
-    namespace GeneratorSettings
+    namespace Generator
     {
         #define DEFAULT_NB_RESOURCES                  1
         #define DEFAULT_MAX_RESOURCE_CAPACITY         10
@@ -25,7 +25,7 @@ namespace Settings
         #define DEFAULT_MIN_NB_RESOURCE_UNITS_PER_JOB 1
     } // namespace GeneratorSettings
 
-    namespace SolverSettings
+    namespace Solver
     {
         #define DEFAULT_RESULTS_DIRECTORY "../../Result/"
         #define DEFAULT_VERBOSE           false

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "External/ILPSolverModel/ILPSolverModel.hpp"
 #include "ILPOptimizationModel/ConstraintModelBuilder.hpp"
 #include "ILPOptimizationModel/VariableMappingBuilder.hpp"
-#include "External/ILPSolverModel/ILPSolverModel.hpp"
 #include "Settings.hpp"
 #include "Solution/Solution.hpp"
 
@@ -13,8 +13,8 @@ class ProblemSolverILP
     ProblemSolverILP(const ProblemSolverILP &) = delete;
     ProblemSolverILP &operator=(const ProblemSolverILP &) = delete;
 
-    Solution solve(Solution &init_solution, double rel_gap = Settings::SolverSettings::ILP_RELATIVE_GAP,
-                   double time_limit = Settings::SolverSettings::MAX_RUNTIME) const;
+    Solution solve(Solution &init_solution, double rel_gap = Settings::Solver::ILP_RELATIVE_GAP,
+                   double time_limit = Settings::Solver::MAX_RUNTIME) const;
 
   private:
     void construct(ConstraintModelBuilder &generator);

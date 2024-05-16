@@ -70,54 +70,54 @@ static bool parse_generator_option_parameters(const std::string &generator_optio
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("nb_resources"));
     LOG_F(INFO, "nb_resources =  %d", json_doc_generator_options["nb_resources"].GetUint());
-    Settings::GeneratorSettings::NB_RESOURCES = json_doc_generator_options["nb_resources"].GetUint();
+    Settings::Generator::NB_RESOURCES = json_doc_generator_options["nb_resources"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_resource_capacity"));
     LOG_F(INFO, "min_resource_capacity =  %d", json_doc_generator_options["min_resource_capacity"].GetUint());
-    Settings::GeneratorSettings::MIN_RESOURCE_CAPACITY = json_doc_generator_options["min_resource_capacity"].GetUint();
+    Settings::Generator::MIN_RESOURCE_CAPACITY = json_doc_generator_options["min_resource_capacity"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_resource_capacity"));
     LOG_F(INFO, "max_resource_capacity =  %d", json_doc_generator_options["max_resource_capacity"].GetUint());
-    Settings::GeneratorSettings::MAX_RESOURCE_CAPACITY = json_doc_generator_options["max_resource_capacity"].GetUint();
+    Settings::Generator::MAX_RESOURCE_CAPACITY = json_doc_generator_options["max_resource_capacity"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("nb_jobs"), "nb_jobs field is not found");
     LOG_F(INFO, "nb_jobs =  %d", json_doc_generator_options["nb_jobs"].GetUint());
-    Settings::GeneratorSettings::NB_JOBS = json_doc_generator_options["nb_jobs"].GetUint();
+    Settings::Generator::NB_JOBS = json_doc_generator_options["nb_jobs"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_nb_succ"), "min_nb_succ field is not found");
     LOG_F(INFO, "min_nb_succ =  %d", json_doc_generator_options["min_nb_succ"].GetUint());
-    Settings::GeneratorSettings::MIN_NB_SUCCESSORS = json_doc_generator_options["min_nb_succ"].GetUint();
+    Settings::Generator::MIN_NB_SUCCESSORS = json_doc_generator_options["min_nb_succ"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_succ"), "max_nb_succ field is not found");
     LOG_F(INFO, "max_nb_succ =  %d", json_doc_generator_options["max_nb_succ"].GetUint());
-    Settings::GeneratorSettings::MAX_NB_SUCCESSORS = json_doc_generator_options["max_nb_succ"].GetUint();
+    Settings::Generator::MAX_NB_SUCCESSORS = json_doc_generator_options["max_nb_succ"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_modes"));
     LOG_F(INFO, "max_nb_modes =  %d", json_doc_generator_options["max_nb_modes"].GetUint());
-    Settings::GeneratorSettings::MAX_NB_MODES = json_doc_generator_options["max_nb_modes"].GetUint();
+    Settings::Generator::MAX_NB_MODES = json_doc_generator_options["max_nb_modes"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_nb_modes"));
     LOG_F(INFO, "min_nb_modes =  %d", json_doc_generator_options["min_nb_modes"].GetUint());
-    Settings::GeneratorSettings::MIN_NB_MODES = json_doc_generator_options["min_nb_modes"].GetUint();
+    Settings::Generator::MIN_NB_MODES = json_doc_generator_options["min_nb_modes"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_execution_time"));
     LOG_F(INFO, "max_execution_time =  %d", json_doc_generator_options["max_execution_time"].GetUint());
-    Settings::GeneratorSettings::MAX_EXECUTION_TIME = json_doc_generator_options["max_execution_time"].GetUint();
+    Settings::Generator::MAX_EXECUTION_TIME = json_doc_generator_options["max_execution_time"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_execution_time"));
     LOG_F(INFO, "min_execution_time =  %d", json_doc_generator_options["min_execution_time"].GetUint());
-    Settings::GeneratorSettings::MIN_EXECUTION_TIME = json_doc_generator_options["min_execution_time"].GetUint();
+    Settings::Generator::MIN_EXECUTION_TIME = json_doc_generator_options["min_execution_time"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_resouce_units_per_job"));
     LOG_F(INFO, "max_nb_resouce_units_per_job =  %d",
           json_doc_generator_options["max_nb_resouce_units_per_job"].GetUint());
-    Settings::GeneratorSettings::MAX_NB_RESOURCE_UNITS_PER_JOB =
+    Settings::Generator::MAX_NB_RESOURCE_UNITS_PER_JOB =
         json_doc_generator_options["max_nb_resouce_units_per_job"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_nb_resource_units_per_job"));
     LOG_F(INFO, "min_nb_resource_units_per_job =  %d",
           json_doc_generator_options["min_nb_resource_units_per_job"].GetUint());
-    Settings::GeneratorSettings::MIN_NB_RESOURCE_UNITS_PER_JOB =
+    Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB =
         json_doc_generator_options["min_nb_resource_units_per_job"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("first_instance_index"));
@@ -156,11 +156,11 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("results_directory"));
     LOG_F(INFO, "results_directory =  %s", json_doc_solver_options["results_directory"].GetString());
-    Settings::SolverSettings::RESULTS_DIRECTORY = json_doc_solver_options["results_directory"].GetString();
+    Settings::Solver::RESULTS_DIRECTORY = json_doc_solver_options["results_directory"].GetString();
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("nb_of_thread"));
     LOG_F(INFO, "nb_of_thread =  %d", json_doc_solver_options["nb_of_thread"].GetUint());
-    Settings::SolverSettings::NB_THREADS = json_doc_solver_options["nb_of_thread"].GetUint();
+    Settings::Solver::NB_THREADS = json_doc_solver_options["nb_of_thread"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("use_gurobi") ||
                      json_doc_solver_options.HasMember("use_cplex") || json_doc_solver_options.HasMember("use_cp"));
@@ -168,44 +168,44 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
     if (json_doc_solver_options.HasMember("use_gurobi"))
     {
         LOG_F(INFO, "use_gurobi =  %s", json_doc_solver_options["use_gurobi"].GetBool() ? "true" : "false");
-        Settings::SolverSettings::USE_GUROBI = json_doc_solver_options["use_gurobi"].GetBool();
+        Settings::Solver::USE_GUROBI = json_doc_solver_options["use_gurobi"].GetBool();
     }
 
     if (json_doc_solver_options.HasMember("use_cplex"))
     {
         LOG_F(INFO, "use_cplex =  %s", json_doc_solver_options["use_cplex"].GetBool() ? "true" : "false");
-        Settings::SolverSettings::USE_CPLEX = json_doc_solver_options["use_cplex"].GetBool();
+        Settings::Solver::USE_CPLEX = json_doc_solver_options["use_cplex"].GetBool();
     }
 
     if (json_doc_solver_options.HasMember("use_cp"))
     {
         LOG_F(INFO, "use_cp =  %s", json_doc_solver_options["use_cp"].GetBool() ? "true" : "false");
-        Settings::SolverSettings::USE_CP = json_doc_solver_options["use_cp"].GetBool();
+        Settings::Solver::USE_CP = json_doc_solver_options["use_cp"].GetBool();
     }
 
     if (json_doc_solver_options.HasMember("check_solution"))
     {
         LOG_F(INFO, "check_solution =  %s", json_doc_solver_options["check_solution"].GetBool() ? "true" : "false");
-        Settings::SolverSettings::CHECK_SOLUTION = json_doc_solver_options["check_solution"].GetBool();
+        Settings::Solver::CHECK_SOLUTION = json_doc_solver_options["check_solution"].GetBool();
     }
 
     if (json_doc_solver_options.HasMember("draw_gantt_chart"))
     {
         LOG_F(INFO, "draw_gantt_chart =  %s", json_doc_solver_options["draw_gantt_chart"].GetBool() ? "true" : "false");
-        Settings::SolverSettings::DRAW_GANTT_CHART = json_doc_solver_options["draw_gantt_chart"].GetBool();
+        Settings::Solver::DRAW_GANTT_CHART = json_doc_solver_options["draw_gantt_chart"].GetBool();
     }
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("max_runtime"));
     LOG_F(INFO, "max_runtime =  %d", json_doc_solver_options["max_runtime"].GetUint());
-    Settings::SolverSettings::MAX_RUNTIME = json_doc_solver_options["max_runtime"].GetUint();
+    Settings::Solver::MAX_RUNTIME = json_doc_solver_options["max_runtime"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("init_ilp_solution"));
     LOG_F(INFO, "init_ilp_solution =  %s", json_doc_solver_options["init_ilp_solution"].GetBool() ? "ture" : "false");
-    Settings::SolverSettings::INIT_ILP_SOLUTION = json_doc_solver_options["init_ilp_solution"].GetBool();
+    Settings::Solver::INIT_ILP_SOLUTION = json_doc_solver_options["init_ilp_solution"].GetBool();
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("ilp_relative_gap"));
     LOG_F(INFO, "ilp_relative_gap =  %f", json_doc_solver_options["ilp_relative_gap"].GetDouble());
-    Settings::SolverSettings::ILP_RELATIVE_GAP = json_doc_solver_options["ilp_relative_gap"].GetDouble();
+    Settings::Solver::ILP_RELATIVE_GAP = json_doc_solver_options["ilp_relative_gap"].GetDouble();
 
     return true;
 }
@@ -239,13 +239,13 @@ static bool run_solution_checker(const ProblemInstance &problem_instance, const 
 static void write_results(const ProblemInstance &problem_instance, const std::string &short_instance_name,
                           Solution &solution)
 {
-    std::string solution_file = Settings::SolverSettings::RESULTS_DIRECTORY + "instances_solution.xlsx";
-    std::string statistic_file = Settings::SolverSettings::RESULTS_DIRECTORY + "statistics.xlsx";
+    std::string solution_file = Settings::Solver::RESULTS_DIRECTORY + "instances_solution.xlsx";
+    std::string statistic_file = Settings::Solver::RESULTS_DIRECTORY + "statistics.xlsx";
     write_solution_to_excel_file(solution_file, statistic_file, short_instance_name, solution);
 
     LOG_F(INFO, "%s", static_cast<std::string>(solution).c_str());
 
-    if (Settings::SolverSettings::DRAW_GANTT_CHART)
+    if (Settings::Solver::DRAW_GANTT_CHART)
     {
         solution.inverse_allocated_resouces(problem_instance);
         draw_gantt_chart_from_json(solution.job_allocations, problem_instance.resources);
@@ -255,7 +255,7 @@ static void write_results(const ProblemInstance &problem_instance, const std::st
 static void run_solver(const std::string &programm_task_options)
 {
     parse_solver_option_parameters(programm_task_options);
-    std::filesystem::create_directories(Settings::SolverSettings::RESULTS_DIRECTORY);
+    std::filesystem::create_directories(Settings::Solver::RESULTS_DIRECTORY);
 
     for (size_t index = Settings::FIRST_INSTANCE_INDEX; index <= Settings::LAST_INSTANCE_INDEX; ++index)
     {
@@ -266,21 +266,21 @@ static void run_solver(const std::string &programm_task_options)
         InstanceReader reader(problem_instance.name);
         reader.read(programm_task_options, problem_instance);
         Solution solution;
-        if (Settings::SolverSettings::USE_GUROBI || Settings::SolverSettings::USE_CPLEX)
+        if (Settings::Solver::USE_GUROBI || Settings::Solver::USE_CPLEX)
         {
             Solution initSol;
-            if (Settings::SolverSettings::INIT_ILP_SOLUTION)
+            if (Settings::Solver::INIT_ILP_SOLUTION)
             {
                 // TODO
             }
             ProblemSolverILP ilpSolver(problem_instance);
             solution = ilpSolver.solve(initSol);
-        } else if (Settings::SolverSettings::USE_CP)
+        } else if (Settings::Solver::USE_CP)
         {
             // TODO
         }
 
-        if (Settings::SolverSettings::CHECK_SOLUTION)
+        if (Settings::Solver::CHECK_SOLUTION)
         {
             PPK_ASSERT_ERROR(run_solution_checker(problem_instance, solution), "Wrong Solution");
         }

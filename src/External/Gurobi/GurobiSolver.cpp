@@ -94,7 +94,7 @@ std::vector<GRBVar> generate_problem_gurobi(Solution &init_solution, const ILPSo
     }
 
     // TODO enable initilization of solution in case
-    if (Settings::SolverSettings::INIT_ILP_SOLUTION)
+    if (Settings::Solver::INIT_ILP_SOLUTION)
     {
         init_variables(init_solution, vars);
     }

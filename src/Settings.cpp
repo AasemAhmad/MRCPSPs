@@ -11,7 +11,7 @@ namespace Settings
     size_t LAST_INSTANCE_INDEX = DEFAULT_LAST_INSTANCE_INDEX;
     std::string INSTANCE_NAME = DEFAULT_INSTANCE_NAME;
 
-    namespace GeneratorSettings
+    namespace Generator
     {
         size_t NB_RESOURCES = DEFAULT_NB_RESOURCES;
         size_t MAX_RESOURCE_CAPACITY = DEFAULT_MAX_RESOURCE_CAPACITY;
@@ -25,9 +25,9 @@ namespace Settings
         size_t MIN_EXECUTION_TIME = DEFAULT_MIN_EXECUTION_TIME;
         size_t MAX_NB_RESOURCE_UNITS_PER_JOB = DEFAULT_MAX_NB_RESOURCE_UNITS_PER_JOB;
         size_t MIN_NB_RESOURCE_UNITS_PER_JOB = DEFAULT_MIN_NB_RESOURCE_UNITS_PER_JOB;
-    } // namespace GeneratorSettings
+    } // namespace Generator
 
-    namespace SolverSettings
+    namespace Solver
     {
         std::string RESULTS_DIRECTORY = DEFAULT_RESULTS_DIRECTORY;
         bool VERBOSE = DEFAULT_VERBOSE;
@@ -43,5 +43,5 @@ namespace Settings
         bool INIT_ILP_SOLUTION = DEFAULT_INIT_ILP_SOLUTION;
         double ILP_RELATIVE_GAP = DEFAULT_ILP_RELATIVE_GAP;
         bool INIT_SOLUTION = DEFAULT_INIT_SOLUTION;
-    } // namespace SolverSettings
+    } // namespace Solver
 } // namespace Settings
