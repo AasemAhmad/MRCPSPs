@@ -15,12 +15,12 @@ class ResultWriter
     using ColumnName = std::string;
     using ColumnIndex = size_t;
     using ColumnValue = std::string;
-    using Row = std::map<ColumnName, ColumnValue>;
-    void write(const Row &row);
+    using Row = std::map<ColumnName, ColumnValue, std::less<>>;
+    void write(const Row &&row);
 
   private:
     void write_header_to_excel();
-    using map1ton = std::map<std::string, std::vector<std::string>>;
+    using map1ton = std::map<std::string, std::vector<std::string>, std::less<>>;
     std::map<ColumnIndex, ColumnName> column_map;
     lxw_workbook *workbook;
     lxw_worksheet *worksheet;

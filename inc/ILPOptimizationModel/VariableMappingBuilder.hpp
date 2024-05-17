@@ -6,19 +6,14 @@
 
 class TimeIndexedModelVariableMapping
 {
-  private:
-    const ProblemInstance &problem_instance;
-
   public:
-    TimeIndexedModelVariableMapping(const ProblemInstance &problem_instance);
+    explicit TimeIndexedModelVariableMapping(const ProblemInstance &problem_instance);
     TimeIndexedModelVariableMapping(const TimeIndexedModelVariableMapping &) = delete;
     TimeIndexedModelVariableMapping &operator=(const TimeIndexedModelVariableMapping &) = delete;
 
     size_t get_nb_variables() const;
 
-    operator std::string() const;
-
-    using map1to1 = std::map<std::string, size_t>;
+    using map1to1 = std::map<std::string, size_t, std::less<>>;
     using map2to1 = std::map<std::tuple<std::string, std::string>, size_t>;
     using map3to1 = std::map<std::tuple<std::string, std::string, std::string>, size_t>;
 
@@ -32,6 +27,7 @@ class TimeIndexedModelVariableMapping
     std::vector<std::string> var_desc;
 
   private:
+    const ProblemInstance &problem_instance;
     void add_objective_function_variables();
     void add_task_startime_binary_variables();
     void add_task_processing_time_variables();

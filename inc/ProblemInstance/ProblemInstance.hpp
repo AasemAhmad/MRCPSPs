@@ -6,14 +6,14 @@
 class ProblemInstance
 {
   public:
-    ProblemInstance(const std::string &name);
-    ~ProblemInstance() {}
+    explicit ProblemInstance(const std::string &name);
+    ~ProblemInstance() = default;
     ProblemInstance(const ProblemInstance &) = delete;
     ProblemInstance &operator=(const ProblemInstance &) = delete;
 
     void set_makespan_upperbound();
     void append_job(std::shared_ptr<Job> job);
-    std::shared_ptr<Job> find_job(const std::string &job_id);
+    std::shared_ptr<Job> find_job(const std::string &job_id) const;
     void sort_jobs_by_id();
     void sort_jobs_by_release_time();
 

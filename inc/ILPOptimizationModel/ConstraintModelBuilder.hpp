@@ -9,9 +9,7 @@
 class ConstraintModelBuilder
 {
   public:
-    ConstraintModelBuilder(const ProblemInstance &problem_instance)
-        : constraints_counter(0), problem_instance(problem_instance)
-    {}
+    explicit ConstraintModelBuilder(const ProblemInstance &problem_instance) : problem_instance(problem_instance) {}
     ConstraintModelBuilder(const ConstraintModelBuilder &) = delete;
     ConstraintModelBuilder &operator=(ConstraintModelBuilder &&) = delete;
 
@@ -35,7 +33,7 @@ class ConstraintModelBuilder
     void add_constraint(SparseMatrix<double>::Row &row, Operator op, const double &b, const std::string &conDesc);
 
   private:
-    size_t constraints_counter;
+    size_t constraints_counter = 0;
     const ProblemInstance &problem_instance;
     SparseMatrix<double> constraint_matrix;
     std::vector<Operator> constraint_operator;

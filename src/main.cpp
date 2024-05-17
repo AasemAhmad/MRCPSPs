@@ -8,6 +8,7 @@
 #include "Solution/SolutionChecker.hpp"
 #include <Shared/Utils.hpp>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <loguru.hpp>
 #include <rapidjson/document.h>
@@ -18,8 +19,8 @@
 static int g_argc;
 static char **g_argv;
 
-static const std::set<std::string> program_tasks_set = {"solver", "generator"};
-static const std::set<std::string> verbosity_levels_set = {"debug", "info", "quiet", "silent"};
+static const std::set<std::string, std::less<>> program_tasks_set = {"solver", "generator"};
+static const std::set<std::string, std::less<>> verbosity_levels_set = {"debug", "info", "quiet", "silent"};
 
 static void parse_command_line(std::string &program_task, std::string &program_task_conf, std::string &verbosity_level,
                                std::string &program_task_conf_path)
@@ -157,6 +158,9 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("results_directory"));
     LOG_F(INFO, "results_directory =  %s", json_doc_solver_options["results_directory"].GetString());
     Settings::Solver::RESULTS_DIRECTORY = json_doc_solver_options["results_directory"].GetString();
+    //LOG_F(INFO, "%s", Settings::Solver::RESULTS_DIRECTORY);
+    LOG_F(INFO, "%s", std::string(Settings::Solver::RESULTS_DIRECTORY).c_str());
+
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("nb_of_thread"));
     LOG_F(INFO, "nb_of_thread =  %d", json_doc_solver_options["nb_of_thread"].GetUint());
@@ -221,7 +225,7 @@ static void run_generator(const std::string &programm_task_options)
         for (size_t index = Settings::FIRST_INSTANCE_INDEX; index <= Settings::LAST_INSTANCE_INDEX; ++index)
         {
             std::filesystem::create_directory(Settings::INSTANCES_DIRECTORY_PATH);
-            std::string fileName = Settings::INSTANCES_DIRECTORY_PATH + "instance_" + std::to_string(index) + ".json";
+            std::string fileName = std::format("{}instance_{}.json", Settings::INSTANCES_DIRECTORY_PATH, index);
             LOG_F(INFO, "file name = %s", fileName.c_str());
             InstanceGenerator generator(fileName);
             generator.generate();
@@ -239,12 +243,13 @@ static bool run_solution_checker(const ProblemInstance &problem_instance, const 
 static void write_results(const ProblemInstance &problem_instance, const std::string &short_instance_name,
                           Solution &solution)
 {
-    std::string solution_file = Settings::Solver::RESULTS_DIRECTORY + "instances_solution.xlsx";
-    std::string statistic_file = Settings::Solver::RESULTS_DIRECTORY + "statistics.xlsx";
+    std::string solution_file = std::format("{}instances_solution.xlsx", Settings::Solver::RESULTS_DIRECTORY);
+    std::string statistic_file = std::format("{}statistics.xlsx", Settings::Solver::RESULTS_DIRECTORY);
+
+    LOG_F(INFO, "solution file = %s", solution_file.c_str());
     write_solution_to_excel_file(solution_file, statistic_file, short_instance_name, solution);
 
-    LOG_F(INFO, "%s", static_cast<std::string>(solution).c_str());
-
+    LOG_F(INFO, "%s", solution.get_solution_as_string().c_str());
     if (Settings::Solver::DRAW_GANTT_CHART)
     {
         solution.inverse_allocated_resouces(problem_instance);
@@ -259,12 +264,12 @@ static void run_solver(const std::string &programm_task_options)
 
     for (size_t index = Settings::FIRST_INSTANCE_INDEX; index <= Settings::LAST_INSTANCE_INDEX; ++index)
     {
-        const std::string short_instance_name = Settings::INSTANCE_NAME + "_" + std::to_string(index) + ".json";
+        const std::string short_instance_name = std::format("{}_{}.json", Settings::INSTANCE_NAME, index);
 
-        ProblemInstance problem_instance(Settings::INSTANCES_DIRECTORY_PATH + short_instance_name);
+        ProblemInstance problem_instance(std::format("{}{}", Settings::INSTANCES_DIRECTORY_PATH, short_instance_name));
 
         InstanceReader reader(problem_instance.name);
-        reader.read(programm_task_options, problem_instance);
+        reader.read(problem_instance);
         Solution solution;
         if (Settings::Solver::USE_GUROBI || Settings::Solver::USE_CPLEX)
         {

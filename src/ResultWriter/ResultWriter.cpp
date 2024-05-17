@@ -4,9 +4,9 @@
 ResultWriter::ResultWriter(const std::string &file_name, const std::vector<std::string> &header)
 {
     workbook = workbook_new(file_name.c_str());
-    worksheet = workbook_add_worksheet(workbook, NULL);
+    worksheet = workbook_add_worksheet(workbook, nullptr);
 
-    worksheet_set_column(worksheet, 0, 255, 20, NULL);
+    worksheet_set_column(worksheet, 0, 255, 20, nullptr);
 
     size_t col_index = 0;
     for (const auto &item : header)
@@ -22,21 +22,23 @@ ResultWriter::~ResultWriter() { workbook_close(workbook); }
 
 void ResultWriter::write_header_to_excel()
 {
-    for (const auto &column : column_map)
+    for (const auto &[column_index, column_name] : column_map)
     {
-        worksheet_write_string(worksheet, current_row_index, column.first, column.second.c_str(), NULL);
+        worksheet_write_string(worksheet, static_cast<unsigned short>(current_row_index),
+                               static_cast<unsigned short>(column_index), column_name.c_str(), nullptr);
     }
     ++current_row_index;
 }
 
-void ResultWriter::write(const ResultWriter::Row &row)
+void ResultWriter::write(const ResultWriter::Row &&row)
 {
-    for (const auto &pair : column_map)
+    for (const auto &[column_index, column_name] : column_map)
     {
-        size_t col_index = pair.first;
-        const std::string &col_name = pair.second;
+        size_t col_index = column_index;
+        const std::string &col_name = column_name;
         PPK_ASSERT_ERROR(row.count(col_name) == 1, "Column %s does not exist", col_name.c_str());
-        worksheet_write_string(worksheet, current_row_index, col_index, row.at(col_name).c_str(), NULL);
+        worksheet_write_string(worksheet, static_cast<unsigned short>(current_row_index),
+                               static_cast<unsigned short>(col_index), row.at(col_name).c_str(), nullptr);
     }
     ++current_row_index;
 }

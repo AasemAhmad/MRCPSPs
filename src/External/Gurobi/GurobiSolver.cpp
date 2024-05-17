@@ -7,10 +7,11 @@
 #include "External/pempek_assert.hpp"
 #include "Settings.hpp"
 #include "gurobi_c++.h"
+#include <format>
 
-void init_variables(Solution &init_solution, std::vector<GRBVar> &vars);
+void init_variables(const Solution &init_solution, std::vector<GRBVar> &vars);
 
-std::vector<GRBVar> generate_problem_gurobi(Solution &init_solution, const ILPSolverModel &ilp_model,
+std::vector<GRBVar> generate_problem_gurobi(const Solution &init_solution, const ILPSolverModel &ilp_model,
                                             GRBModel &grb_model)
 {
     std::vector<GRBVar> vars;
@@ -25,6 +26,7 @@ std::vector<GRBVar> generate_problem_gurobi(Solution &init_solution, const ILPSo
 
         switch (var_x.type)
         {
+
         case DecisionVariableType::FLT:
             grb_var = grb_model.addVar(var_x.lower_bound, var_x.upper_bound, c_value, GRB_CONTINUOUS, desc);
             break;
@@ -46,19 +48,22 @@ std::vector<GRBVar> generate_problem_gurobi(Solution &init_solution, const ILPSo
         PPK_ASSERT_ERROR(ilp_model.get_nb_variables() == ilp_model.gurobiC.size(),
                          "Invalid initialization of gurobi criterion functions!");
 
-        for (unsigned long v = 0; v < ilp_model.get_nb_variables(); ++v)
+        for (size_t v = 0; v < ilp_model.get_nb_variables(); ++v)
         {
             const std::tuple<std::vector<double>, std::vector<double>> *cf = ilp_model.gurobiC[v];
-            if (cf != nullptr)
+            if (cf == nullptr)
             {
-                const std::vector<double> &x = get<0>(*cf), &y = get<1>(*cf);
+                continue;
+            }
 
-                PPK_ASSERT_ERROR(x.size() == y.size(), "Invalid initialization of Gurobi functions!");
+            const std::vector<double> &x = get<0>(*cf);
+            const std::vector<double> &y = get<1>(*cf);
 
-                if (!x.empty() && !y.empty())
-                {
-                    grb_model.setPWLObj(vars[v], x.size(), (double *)x.data(), (double *)y.data());
-                }
+            PPK_ASSERT_ERROR(x.size() == y.size(), "Invalid initialization of Gurobi functions!");
+
+            if (!x.empty() && !y.empty())
+            {
+                grb_model.setPWLObj(vars[v], x.size(), (double *)x.data(), (double *)y.data());
             }
         }
     }
@@ -71,9 +76,9 @@ std::vector<GRBVar> generate_problem_gurobi(Solution &init_solution, const ILPSo
     {
         GRBLinExpr expr;
 
-        for (const auto &element : ilp_model.matrix_A[var_index])
+        for (const auto &[index, value] : ilp_model.matrix_A[var_index])
         {
-            expr += element.second * vars[element.first];
+            expr += value * vars[index];
         }
 
         double b_value = ilp_model.vector_b[var_index];
@@ -81,13 +86,14 @@ std::vector<GRBVar> generate_problem_gurobi(Solution &init_solution, const ILPSo
 
         switch (var_op)
         {
-        case Operator::LESS_EQUAL:
+            using enum Operator;
+        case LESS_EQUAL:
             grb_model.addConstr(expr <= b_value, desc);
             break;
-        case Operator::EQUAL:
+        case EQUAL:
             grb_model.addConstr(expr == b_value, desc);
             break;
-        case Operator::GREATER_EQUAL:
+        case GREATER_EQUAL:
             grb_model.addConstr(expr >= b_value, desc);
         }
         ++var_index;
@@ -107,16 +113,18 @@ std::vector<GRBEnv> threadEnv;
 std::string GurobiSolver::get_solver_identification() const
 {
     std::string identification = "Gurobi";
-    int major = -1, minor = -1, release = -1;
+    int major = -1;
+    int minor = -1;
+    int release = -1;
     GRBversion(&major, &minor, &release);
     if (major != -1 && minor != -1 && release != -1)
     {
-        identification += " " + std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(release);
+        identification += std::format(" {}.{}.{}", major, minor, release);
     }
     return identification;
 }
 
-void GurobiSolver::initialize_local_environments(int nb_of_threads) const
+void GurobiSolver::initialize_local_environments(size_t nb_of_threads) const
 {
     try
     {
@@ -127,13 +135,13 @@ void GurobiSolver::initialize_local_environments(int nb_of_threads) const
     }
 }
 
-void init_variables(Solution &init_solution, std::vector<GRBVar> &vars)
+void init_variables(const Solution &init_solution, std::vector<GRBVar> &vars)
 {
     // TODO
 }
 
 SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverModel &ilp_model, bool verbose, double gap,
-                                    double time_limit, int nb_of_threads, int thread_id) const
+                                    double time_limit, size_t nb_of_threads, size_t thread_id) const
 {
 
     SolutionILP solution_ilp;
@@ -146,7 +154,7 @@ SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverMode
                          "Either the Gurobi environments were not initialized or the number of concurrent threads "
                          "specified incorrectly in the initialize_local_environments method!");
 
-        threadEnv[thread_id].set(GRB_IntParam_Threads, nb_of_threads);
+        threadEnv[thread_id].set(GRB_IntParam_Threads, static_cast<int>(nb_of_threads));
 
         if (time_limit != 0.0)
         {

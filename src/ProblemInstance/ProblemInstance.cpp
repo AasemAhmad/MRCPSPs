@@ -20,7 +20,7 @@ void ProblemInstance::set_makespan_upperbound()
 
 void ProblemInstance::append_job(std::shared_ptr<Job> job) { job_queue.append_item(job); }
 
-std::shared_ptr<Job> ProblemInstance::find_job(const std::string &job_id) { return job_queue.find_item(job_id); }
+std::shared_ptr<Job> ProblemInstance::find_job(const std::string &job_id) const { return job_queue.find_item(job_id); }
 
 void ProblemInstance::sort_jobs_by_id() { job_queue.sort_queue(Job::compare_by_job_id); }
 

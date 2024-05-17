@@ -43,7 +43,7 @@ struct DecisionVariable
 
 struct ILPSolverModel
 {
-    ILPSolverModel(ObjectiveFunction o = ObjectiveFunction::MINIMIZE) : obj(o) {}
+    explicit ILPSolverModel(ObjectiveFunction o = ObjectiveFunction::MINIMIZE) : obj(o) {}
     size_t get_nb_constraints() const { return matrix_A.get_nb_rows(); }
     size_t get_nb_variables() const { return vector_x.size(); }
     void check_ilp_formulation() const;

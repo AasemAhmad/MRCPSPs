@@ -9,7 +9,7 @@
 class ProblemSolverILP
 {
   public:
-    ProblemSolverILP(const ProblemInstance &problem_instance);
+    explicit ProblemSolverILP(const ProblemInstance &problem_instance);
     ProblemSolverILP(const ProblemSolverILP &) = delete;
     ProblemSolverILP &operator=(const ProblemSolverILP &) = delete;
 

@@ -1,7 +1,7 @@
+
 #include "Settings.hpp"
 #include "DefaultSettings.hpp"
 #include <string>
-#include <thread>
 
 namespace Settings
 {

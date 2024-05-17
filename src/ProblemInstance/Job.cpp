@@ -1,8 +1,6 @@
 #include "ProblemInstance/Job.hpp"
 
-Job::Job(std::string job_id, double release_time, const std::vector<Mode> &modes)
-    : j_id(job_id), release_time(release_time), modes(modes)
-{}
+
 
 std::string Job::get_id() const { return j_id; }
 

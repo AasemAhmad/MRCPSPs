@@ -1,19 +1,17 @@
 #pragma once
 
-#include <fstream>
-#include <vector>
-#include <map>
 #include "External/pempek_assert.hpp"
+#include <fstream>
+#include <map>
+#include <vector>
 
 class InstanceGenerator
 {
   public:
-    InstanceGenerator(const std::string &file_name) : out_file(file_name)
+    explicit InstanceGenerator(const std::string &file_name) : out_file(file_name)
     {
         PPK_ASSERT_ERROR(out_file.is_open(), "Failed to open the file");
     }
-    ~InstanceGenerator() { out_file.close(); }
-
     InstanceGenerator(const InstanceGenerator &) = delete;
     InstanceGenerator &operator=(const InstanceGenerator &) = delete;
     void generate();

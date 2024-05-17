@@ -10,7 +10,9 @@ template <typename SortableElement> class Queue
 {
   public:
     Queue();
-    ~Queue();
+    Queue(const Queue &) = delete;
+    Queue &operator=(const Queue &) = delete;
+
     using SortableElementIterator = std::list<std::shared_ptr<SortableElement>>::iterator;
     using SortableElementConstIterator = std::list<std::shared_ptr<SortableElement>>::const_iterator;
     SortableElementIterator begin();
@@ -29,9 +31,8 @@ template <typename SortableElement> class Queue
     std::list<std::shared_ptr<SortableElement>> elements;
 };
 
-template <typename SortableElement> Queue<SortableElement>::Queue() {}
+template <typename SortableElement> Queue<SortableElement>::Queue() = default;
 
-template <typename SortableElement> Queue<SortableElement>::~Queue() { this->elements.clear(); }
 
 template <typename SortableElement> auto Queue<SortableElement>::begin() -> SortableElementIterator
 {
@@ -43,26 +44,22 @@ template <typename SortableElement> auto Queue<SortableElement>::end() -> Sortab
     return elements.end();
 }
 
-template <typename SortableElement>
-auto Queue<SortableElement>::begin() const -> SortableElementConstIterator
+template <typename SortableElement> auto Queue<SortableElement>::begin() const -> SortableElementConstIterator
 {
     return elements.begin();
 }
 
-template <typename SortableElement>
-auto Queue<SortableElement>::end() const -> SortableElementConstIterator
+template <typename SortableElement> auto Queue<SortableElement>::end() const -> SortableElementConstIterator
 {
     return elements.end();
 }
 
-template <typename SortableElement>
-auto Queue<SortableElement>::cbegin() const -> SortableElementConstIterator
+template <typename SortableElement> auto Queue<SortableElement>::cbegin() const -> SortableElementConstIterator
 {
     return elements.cbegin();
 }
 
-template <typename SortableElement>
-auto Queue<SortableElement>::cend() const -> SortableElementConstIterator
+template <typename SortableElement> auto Queue<SortableElement>::cend() const -> SortableElementConstIterator
 {
     return elements.cend();
 }
@@ -90,7 +87,6 @@ template <typename SortableElement>
 template <typename CompareFunc>
 void Queue<SortableElement>::sort_queue(CompareFunc compareFunc)
 {
-    // std::sort(_elements.begin(), _elements.end(), compareFunc);
     elements.sort(compareFunc);
 }
 

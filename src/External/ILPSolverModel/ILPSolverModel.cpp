@@ -26,7 +26,9 @@ void ILPSolverModel::log_statistics() const
 
     check_ilp_formulation();
     double matrix_density = matrix_A.get_matrix_density();
-    size_t nb_binary_variables = 0, nb_float_variables = 0, nb_integer_variables = 0;
+    size_t nb_binary_variables = 0;
+    size_t nb_float_variables = 0;
+    size_t nb_integer_variables = 0;
 
     for (const auto &var : vector_x)
     {
@@ -36,13 +38,14 @@ void ILPSolverModel::log_statistics() const
 
         switch (var.type)
         {
-        case DecisionVariableType::FLT:
+            using enum DecisionVariableType;
+        case FLT:
             ++nb_float_variables;
             break;
-        case DecisionVariableType::BIN:
+        case BIN:
             ++nb_binary_variables;
             break;
-        case DecisionVariableType::INT:
+        case INT:
             ++nb_integer_variables;
             break;
         }

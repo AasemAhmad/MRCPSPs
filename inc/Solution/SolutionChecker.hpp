@@ -8,7 +8,7 @@
 class SolutionChecker
 {
   public:
-    SolutionChecker(const ProblemInstance &problem_instance, const Solution &solution)
+    explicit SolutionChecker(const ProblemInstance &problem_instance, const Solution &solution)
         : problem_instance(problem_instance), solution(solution)
     {}
     SolutionChecker(const SolutionChecker &) = delete;

@@ -19,17 +19,19 @@ SolutionState convert(const MODEL_STATUS &ilp_status)
     SolutionState solution_state;
     switch (ilp_status)
     {
-    case MODEL_STATUS::MODEL_SOL_OPTIMAL:
-        solution_state = SolutionState::OPTIMAL;
+        using enum MODEL_STATUS;
+        using enum SolutionState;
+    case MODEL_SOL_OPTIMAL:
+        solution_state = OPTIMAL;
         break;
-    case MODEL_STATUS::MODEL_SOL_FEASIBLE:
-        solution_state = SolutionState::FEASIBLE;
+    case MODEL_SOL_FEASIBLE:
+        solution_state = FEASIBLE;
         break;
-    case MODEL_STATUS::MODEL_SOL_INFEASIBLE:
-        solution_state = SolutionState::INFEASIBLE;
+    case MODEL_SOL_INFEASIBLE:
+        solution_state = INFEASIBLE;
         break;
     default:
-        solution_state = SolutionState::UNKNOWN;
+        solution_state = UNKNOWN;
     }
     return solution_state;
 }
@@ -39,23 +41,24 @@ std::string convert_solution_state_to_string(const SolutionState &solution_state
     std::string solution_state_str;
     switch (solution_state)
     {
-    case SolutionState::FEASIBLE:
+        using enum SolutionState;
+    case FEASIBLE:
         solution_state_str = "Feasible";
         break;
-    case SolutionState::OPTIMAL:
+    case OPTIMAL:
         solution_state_str = "Optimal";
         break;
-    case SolutionState::INFEASIBLE:
+    case INFEASIBLE:
         solution_state_str = "Infeasible";
         break;
-    case SolutionState::UNKNOWN:
+    case UNKNOWN:
         solution_state_str = "Unknown";
         break;
     }
     return solution_state_str;
 }
 
-JobAllocation::operator std::string() const
+std::string JobAllocation::get_job_allocation_as_string() const
 {
     std::ostringstream string_stream;
     string_stream << "Job ID: " << this->job_id << ", "
@@ -65,7 +68,7 @@ JobAllocation::operator std::string() const
     return string_stream.str();
 }
 
-Solution::operator std::string() const
+std::string Solution::get_solution_as_string() const
 {
     std::ostringstream string_stream;
     string_stream << "Solution:\n"
@@ -77,7 +80,7 @@ Solution::operator std::string() const
     std::string job_allocations_string;
     for (const auto &job_allocation : job_allocations)
     {
-        job_allocations_string += static_cast<std::string>(job_allocation) + "\n";
+        job_allocations_string += (job_allocation.get_job_allocation_as_string() + "\n");
     }
 
     return string_stream.str() + job_allocations_string;
@@ -87,10 +90,11 @@ void Solution::inverse_allocated_resouces(const ProblemInstance &problem_instanc
 {
     this->job_allocations = sort_by_field(this->job_allocations, &JobAllocation::start_time);
 
-    std::map<std::string, std::vector<size_t>> resource_availability;
+    std::map<std::string, std::vector<size_t>, std::less<>> resource_availability;
+
     for (const auto &resource : problem_instance.resources)
     {
-        resource_availability.insert({resource.id, std::vector<size_t>(resource.units, 0)});
+        resource_availability.try_emplace(resource.id, std::vector<size_t>(resource.units, 0));
     }
 
     for (auto &job_allocation : this->job_allocations)
@@ -104,7 +108,6 @@ void Solution::inverse_allocated_resouces(const ProblemInstance &problem_instanc
         PPK_ASSERT_ERROR(mode_index < job->modes.size(), "Invalid value %ld", mode_index);
 
         const Mode mode = job->modes.at(mode_index);
-        bool allocated = false;
         size_t resouce_index = 0;
         for (const auto &[resource_id, resource] : problem_instance.resources)
         {
@@ -172,10 +175,10 @@ void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocat
         job_allocation.AddMember("mode_id", job.mode_id, allocator);
         rapidjson::Value units_map_value(rapidjson::kArrayType);
 
-        for (const auto &allocation : job.units_map)
+        for (const auto &[resource_id, units] : job.units_map)
         {
             rapidjson::Value allocation_array_value(rapidjson::kArrayType);
-            for (const auto &element : allocation.second)
+            for (const auto &element : units)
             {
                 allocation_array_value.PushBack(element, allocator);
             }

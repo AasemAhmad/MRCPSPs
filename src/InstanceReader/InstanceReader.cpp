@@ -2,10 +2,12 @@
 #include "External/pempek_assert.hpp"
 #include "ProblemInstance/Job.hpp"
 #include "loguru.hpp"
+#include <format>
 #include <rapidjson/document.h>
 #include <string>
 
-void InstanceReader::read(const std::string &programm_task_options, ProblemInstance &problem_instance)
+
+void InstanceReader::read(ProblemInstance &problem_instance)
 {
     PPK_ASSERT_ERROR(this->instance_file.is_open(), "Failed to open the file");
     std::string content((std::istreambuf_iterator<char>(instance_file)), (std::istreambuf_iterator<char>()));
@@ -22,14 +24,14 @@ void InstanceReader::read(const std::string &programm_task_options, ProblemInsta
     for (rapidjson::SizeType i = 0; i < res_units_array.Size(); ++i)
     {
         Resource resource;
-        resource.id = "r_" + std::to_string(i);
+        resource.id = std::format("r_{}", i);
         resource.units = res_units_array[i].GetUint();
         problem_instance.resources.push_back(std::move(resource));
     }
     const rapidjson::Value &jobs_array = doc["jobs"];
     for (rapidjson::SizeType i = 0; i < jobs_array.Size(); ++i)
     {
-        std::shared_ptr<Job> job = std::make_shared<Job>();
+        auto job = std::make_shared<Job>();
         job->j_id = jobs_array[i]["id"].GetString();
 
         // Parse modes
@@ -40,7 +42,7 @@ void InstanceReader::read(const std::string &programm_task_options, ProblemInsta
             for (rapidjson::SizeType k = 0; k < modes_array[j].Size(); ++k)
             {
                 Resource r;
-                r.id = "r_" + std::to_string(k);
+                r.id = std::format("r_{}", k);
                 r.units = modes_array[j][k].GetUint();
                 mode.requested_resources.push_back(std::move(r));
             }

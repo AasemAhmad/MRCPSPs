@@ -19,7 +19,6 @@ struct Mode
 struct Job
 {
     Job() = default;
-    Job(std::string job_id, double release_time, const std::vector<Mode> &modes);
     std::string get_id() const;
     static bool compare_by_job_id(const std::shared_ptr<Job> &j1, const std::shared_ptr<Job> &j2);
     static bool compare_by_release_time(const std::shared_ptr<Job> &j1, const std::shared_ptr<Job> &j2);

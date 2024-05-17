@@ -3,6 +3,7 @@
 #include "Settings.hpp"
 #include <chrono>
 #include <memory>
+#include <cmath>
 
 ProblemSolverILP::ProblemSolverILP(const ProblemInstance &problem_instance) : variable_mapping_ilp(problem_instance)
 {
@@ -28,7 +29,7 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     }
 
     solution_ilp = solver->solve_ilp(init_solution, ilp_model, Settings::Solver::VERBOSE, rel_gap, time_limit,
-                                     Settings::Solver::NB_THREADS);
+                                     Settings::Solver::NB_THREADS, 0);
 
     using chrono_clk = std::chrono::high_resolution_clock;
     solution.runtime = duration_cast<std::chrono::duration<double>>(chrono_clk::now() - start).count();
@@ -39,15 +40,15 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     {
         try
         {
-            solution.makespan = solution_ilp.criterion;
+            solution.makespan = static_cast<size_t>(std::round(solution_ilp.criterion));
             auto job_durations = lookup(solution_ilp.solution, variable_mapping_ilp.p);
             auto job_start_times = lookup(solution_ilp.solution, variable_mapping_ilp.s);
             auto job_modes = lookup(solution_ilp.solution, variable_mapping_ilp.x);
 
-            for (const auto &item : job_start_times)
+            for (const auto &[key, value] : job_start_times)
             {
                 JobAllocation job_allocation;
-                std::string job_id = item.first;
+                std::string job_id = key;
                 job_allocation.job_id = job_id;
                 job_allocation.start_time = job_start_times.at(job_id);
                 job_allocation.duration = job_durations.at(job_id);

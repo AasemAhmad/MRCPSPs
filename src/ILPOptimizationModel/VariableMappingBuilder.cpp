@@ -4,12 +4,12 @@
 #include "Shared/Queue.hpp"
 #include "Shared/Utils.hpp"
 #include <cmath>
+#include <format>
 
 size_t calcualte_processing_time_upperbound(const std::shared_ptr<Job> &job)
 {
-    auto upper_bound_iterator =
-        std::max_element(job->modes.begin(), job->modes.end(),
-                         [](const Mode &a, const Mode &b) { return a.processing_time > b.processing_time; });
+    auto upper_bound_iterator = std::ranges::max_element(
+        job->modes, [](const Mode &a, const Mode &b) { return a.processing_time < b.processing_time; });
 
     PPK_ASSERT_ERROR(upper_bound_iterator != job->modes.end(), "Error while calcualating the upper bound");
 
@@ -34,39 +34,50 @@ size_t TimeIndexedModelVariableMapping::get_nb_variables() const
 
 void TimeIndexedModelVariableMapping::add_objective_function_variables()
 {
+    const std::source_location loc = std::source_location::current();
+
     size_t idx = get_nb_variables();
     variables.emplace_back(DecisionVariableType::INT, 0, problem_instance.makespan_upperbound);
-    var_desc.emplace_back("cMax index = " + std::to_string(idx));
-    set_value(c_max, std::to_string(1), idx++, __FUNCTION__);
+    var_desc.emplace_back(std::format("cMax_{}", idx));
+    set_value(c_max, std::to_string(1), idx, loc);
+    ++idx;
 }
 
 void TimeIndexedModelVariableMapping::add_task_processing_time_variables()
 {
+    const std::source_location loc = std::source_location::current();
     size_t idx = get_nb_variables();
 
     for (const auto &job : this->problem_instance.job_queue)
     {
-        DecisionVariable var(DecisionVariableType::INT, 0, calcualte_processing_time_upperbound(job));
+        DecisionVariable var(DecisionVariableType::INT, 0,
+                             static_cast<double>(calcualte_processing_time_upperbound(job)));
         variables.push_back(var);
         var_desc.emplace_back("p_{" + job->j_id + "}");
-        set_value(p, job->j_id, idx++, __FUNCTION__);
+        set_value(p, job->j_id, idx, loc);
+        ++idx;
     }
 }
 
 void TimeIndexedModelVariableMapping::add_task_startime_variable()
 {
+    const std::source_location loc = std::source_location::current();
+
     size_t idx = get_nb_variables();
     for (const auto &job : this->problem_instance.job_queue)
     {
-        DecisionVariable var(DecisionVariableType::INT, 0, problem_instance.makespan_upperbound);
+        DecisionVariable var(DecisionVariableType::INT, 0, static_cast<double>(problem_instance.makespan_upperbound));
         variables.push_back(var);
         var_desc.emplace_back("s_{" + job->j_id + "}");
-        set_value(s, {job->j_id}, idx++, __FUNCTION__);
+        set_value(s, {job->j_id}, idx, loc);
+        ++idx;
     }
 }
 
 void TimeIndexedModelVariableMapping::add_task_startime_binary_variables()
 {
+    const std::source_location loc = std::source_location::current();
+
     size_t idx = get_nb_variables();
 
     for (const auto &job : this->problem_instance.job_queue)
@@ -74,14 +85,14 @@ void TimeIndexedModelVariableMapping::add_task_startime_binary_variables()
         for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
         {
             size_t mode_id = 1;
-            for (const auto &mode : job->modes)
+            for ([[maybe_unused]] const auto &_ : job->modes)
             {
                 PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
                 DecisionVariable var(DecisionVariableType::BIN, 0.0, 1.0);
                 variables.push_back(var);
-                var_desc.emplace_back("x_{" + job->j_id + "}#{" + std::to_string(mode_id) + "}#{" + std::to_string(t) +
-                                      "}");
-                set_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, idx++, __FUNCTION__);
+                var_desc.emplace_back(std::format("x_{{{}#{}#{}}}", job->j_id, mode_id, t));
+                set_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, idx, loc);
+                ++idx;
                 ++mode_id;
             }
         }
@@ -96,10 +107,12 @@ void TimeIndexedModelVariableMapping::add_task_resources_allocation_variables()
 TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solution,
                                                 const TimeIndexedModelVariableMapping::map1to1 &mapping)
 {
+    const std::source_location loc = std::source_location::current();
+
     TimeIndexedModelVariableMapping::map1to1 my_map;
-    for (const auto &element : mapping)
+    for (const auto &[key, value] : mapping)
     {
-        set_value(my_map, element.first, solution[element.second], __FUNCTION__);
+        set_value(my_map, key, solution[value], loc);
     }
     return my_map;
 }
@@ -107,11 +120,12 @@ TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solut
 TimeIndexedModelVariableMapping::map2to1 lookup(const std::vector<double> &solution,
                                                 const TimeIndexedModelVariableMapping::map2to1 &mapping)
 {
+    const std::source_location loc = std::source_location::current();
+
     TimeIndexedModelVariableMapping::map2to1 my_map;
-    for (const auto &element : mapping)
+    for (const auto &[key, value] : mapping)
     {
-        set_value(my_map, {std::get<0>(element.first), std::get<1>(element.first)}, solution[element.second],
-                  __FUNCTION__);
+        set_value(my_map, {std::get<0>(key), std::get<1>(key)}, solution[value], loc);
     }
     return my_map;
 }
@@ -119,12 +133,14 @@ TimeIndexedModelVariableMapping::map2to1 lookup(const std::vector<double> &solut
 TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solution,
                                                 const TimeIndexedModelVariableMapping::map3to1 &mapping)
 {
+    const std::source_location loc = std::source_location::current();
+
     TimeIndexedModelVariableMapping::map1to1 my_map;
-    for (const auto &element : mapping)
+    for (const auto &[key, value] : mapping)
     {
-        if (solution[element.second] > 0)
+        if (solution[value] > 0)
         {
-            set_value(my_map, std::get<0>(element.first), std::stoi(std::get<1>(element.first)), __FUNCTION__);
+            set_value(my_map, std::get<0>(key), std::stoi(std::get<1>(key)), loc);
         }
     }
     return my_map;

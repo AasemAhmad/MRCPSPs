@@ -25,22 +25,21 @@ struct JobAllocation
     using ResouceID = size_t;
     using ResouceUnits = std::vector<size_t>;
     std::map<ResouceID, ResouceUnits> units_map;
-    operator std::string() const;
+    std::string get_job_allocation_as_string() const;
 };
 
 struct Solution
 {
-    Solution() : solution_state(SolutionState::UNKNOWN), makespan(0.0), runtime(-1.0), mem_usage(-1.0) {}
-
-    SolutionState solution_state;
+    Solution() = default;
+    SolutionState solution_state = SolutionState::UNKNOWN;
     double gap = Settings::Solver::ILP_RELATIVE_GAP;
     double objective_bound = -1;
-    size_t makespan;
-    double runtime;
-    double mem_usage;
+    size_t makespan = 0;
+    double runtime = 0.0;
+    double mem_usage = 0.0;
     std::vector<JobAllocation> job_allocations;
     void inverse_allocated_resouces(const ProblemInstance &problem_instance);
-    operator std::string() const;
+    std::string get_solution_as_string() const;
 };
 
 void write_solution_to_excel_file(const std::string &instance_solution_file, const std::string &statistics_file,

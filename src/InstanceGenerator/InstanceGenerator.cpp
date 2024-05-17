@@ -16,8 +16,6 @@ void InstanceGenerator::generate()
 
 void InstanceGenerator::generated_data_to_json_file()
 {
-    LOG_F(INFO, "%s started", __FUNCTION__);
-
     rapidjson::Document document;
     document.SetObject();
 
@@ -115,7 +113,7 @@ InstanceGenerator::Dependecies InstanceGenerator::generate_dependencies() const
 
     while (!q.empty() && nb_created_nodes < nb_nodes)
     {
-        int current = q.front();
+        size_t current = q.front();
         q.pop();
 
         size_t nb_child_nodes =
@@ -125,7 +123,8 @@ InstanceGenerator::Dependecies InstanceGenerator::generate_dependencies() const
 
         for (int i = 0; i < nb_child_nodes; ++i)
         {
-            dependencies[current].push_back(++node_index);
+            ++node_index;
+            dependencies[current].push_back(node_index);
             q.push(node_index);
             ++nb_created_nodes;
         }
@@ -139,21 +138,25 @@ InstanceGenerator::generate_processing_times(const InstanceGenerator::JobModes &
     LOG_F(INFO, "job modes size = %ld", job_modes.size());
     InstanceGenerator::ProcessingTimes processing_times(job_modes.size());
     std::vector<size_t> resources_per_mode;
-    std::transform(job_modes.begin(), job_modes.end(), std::back_inserter(resources_per_mode),
-                   [](const std::vector<size_t> &row) { return std::accumulate(row.begin(), row.end(), 0); });
+
+    std::ranges::transform(job_modes, std::back_inserter(resources_per_mode),
+                           [](const std::vector<size_t> &row) { return std::accumulate(row.begin(), row.end(), 0); });
+
     size_t optimal_execution_time_value =
         random_range(Settings::Generator::MIN_EXECUTION_TIME, Settings::Generator::MAX_EXECUTION_TIME / 2);
 
-    auto max_nb_nodes = std::max_element(resources_per_mode.begin(), resources_per_mode.end());
+    auto max_nb_nodes = std::ranges::max_element(resources_per_mode);
 
     LOG_F(INFO, "max_nb_nodes = %ld", *max_nb_nodes);
 
     for (size_t i = 0; i < resources_per_mode.size(); ++i)
     {
-        double normalized_value = static_cast<double>(resources_per_mode[i]) / *max_nb_nodes;
+        double normalized_value = static_cast<double>(resources_per_mode[i]) / static_cast<double>(*max_nb_nodes);
         processing_times[i] =
             Settings::Generator::MAX_EXECUTION_TIME -
-            std::ceil(normalized_value * (Settings::Generator::MAX_EXECUTION_TIME - optimal_execution_time_value));
+            static_cast<size_t>(
+                std::ceil(normalized_value *
+                          static_cast<double>(Settings::Generator::MAX_EXECUTION_TIME - optimal_execution_time_value)));
     }
     return processing_times;
 }
@@ -178,9 +181,7 @@ InstanceGenerator::generate_job_modes(const InstanceGenerator::ResourceUnits &re
             mode[j] = random_range(Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB, resource_units[j]);
         }
 
-        bool no_resource_units_requested =
-            std::all_of(mode.begin(), mode.end(), [](size_t value) { return value == 0; });
-        if (no_resource_units_requested)
+        if (const bool no_resource_units_requested = std::ranges::all_of(mode, [](size_t value) { return value == 0; }))
         {
             continue;
         }

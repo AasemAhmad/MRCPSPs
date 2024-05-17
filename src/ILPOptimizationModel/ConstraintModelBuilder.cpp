@@ -31,7 +31,9 @@ size_t ConstraintModelBuilder::move_constraints_to_model(ILPSolverModel &ilp_mod
 void ConstraintModelBuilder::add_job_proccessing_time_constraints(const TimeIndexedModelVariableMapping::map3to1 &x,
                                                                   const TimeIndexedModelVariableMapping::map1to1 &p)
 {
-    LOG_F(INFO, "%s started", __FUNCTION__);
+    const std::source_location loc = std::source_location::current();
+
+    LOG_F(INFO, "%s started", source_location_to_string(loc).c_str());
 
     for (const auto &job : this->problem_instance.job_queue)
     {
@@ -44,13 +46,13 @@ void ConstraintModelBuilder::add_job_proccessing_time_constraints(const TimeInde
             for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
             {
                 PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
-                row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, __FUNCTION__),
+                row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, loc),
                                  mode.processing_time);
             }
             ++mode_id;
         }
 
-        row.emplace_back(get_value(p, job->j_id, __FUNCTION__), -1.0);
+        row.emplace_back(get_value(p, job->j_id, loc), -1.0);
         add_constraint(row, op, b, "JobProccessingTimeConstraints");
     }
 
@@ -60,13 +62,12 @@ void ConstraintModelBuilder::add_job_proccessing_time_constraints(const TimeInde
         Operator op = Operator::EQUAL;
         SparseMatrix<double>::Row row;
         size_t mode_id = 1;
-        for (const auto &mode : job->modes)
+        for ([[maybe_unused]] const auto &_ : job->modes)
         {
             for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
             {
                 PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
-                row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, __FUNCTION__),
-                                 1);
+                row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, loc), 1);
             }
             ++mode_id;
         }
@@ -79,15 +80,17 @@ void ConstraintModelBuilder::add_job_start_time_constraints(const TimeIndexedMod
                                                             const TimeIndexedModelVariableMapping::map1to1 &p,
                                                             const TimeIndexedModelVariableMapping::map1to1 &cMax)
 {
-    LOG_F(INFO, "%s started", __FUNCTION__);
+    const std::source_location loc = std::source_location::current();
+
+    LOG_F(INFO, "%s started", source_location_to_string(loc).c_str());
 
     for (const auto &job : this->problem_instance.job_queue)
     {
         double b = 0.0;
         Operator op = Operator::LESS_EQUAL;
-        SparseMatrix<double>::Row row = {{get_value(s, job->j_id, __FUNCTION__), 1.0},
-                                         {get_value(p, job->j_id, __FUNCTION__), 1.0},
-                                         {get_value(cMax, std::to_string(1), __FUNCTION__), -1.0}};
+        SparseMatrix<double>::Row row = {{get_value(s, job->j_id, loc), 1.0},
+                                         {get_value(p, job->j_id, loc), 1.0},
+                                         {get_value(cMax, std::to_string(1), loc), -1.0}};
         add_constraint(row, op, b, "JobStartTimeConstraint");
     }
 
@@ -99,25 +102,25 @@ void ConstraintModelBuilder::add_job_start_time_constraints(const TimeIndexedMod
         for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
         {
             size_t mode_id = 1;
-            for (const auto &mode : job->modes)
+            for ([[maybe_unused]] const auto &_ : job->modes)
             {
                 PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
-                row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, __FUNCTION__),
-                                 t);
+                row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, loc), t);
                 ++mode_id;
             }
         }
-        row.emplace_back(get_value(s, job->j_id, __FUNCTION__), -1.0);
+        row.emplace_back(get_value(s, job->j_id, loc), -1.0);
         add_constraint(row, op, b, "JobStartTimeConstraint");
     }
 
-    LOG_F(INFO, "%s finished successfully", __FUNCTION__);
+    LOG_F(INFO, "%s finished successfully", source_location_to_string(loc).c_str());
 }
 
 void ConstraintModelBuilder::add_precedence_constraints(const TimeIndexedModelVariableMapping::map1to1 &s,
                                                         const TimeIndexedModelVariableMapping::map1to1 &p)
 {
-    LOG_F(INFO, "%s started", __FUNCTION__);
+    const std::source_location loc = std::source_location::current();
+    LOG_F(INFO, "%s started", source_location_to_string(loc).c_str());
 
     for (const auto &job : this->problem_instance.job_queue)
     {
@@ -125,19 +128,21 @@ void ConstraintModelBuilder::add_precedence_constraints(const TimeIndexedModelVa
         {
             double b = 0.0;
             Operator op = Operator::LESS_EQUAL;
-            SparseMatrix<double>::Row row = {{get_value(s, job->j_id, __FUNCTION__), 1.0},
-                                             {get_value(s, succ, __FUNCTION__), -1.0},
-                                             {get_value(p, job->j_id, __FUNCTION__), 1.0}};
+            SparseMatrix<double>::Row row = {{get_value(s, job->j_id, std::source_location::current()), 1.0},
+                                             {get_value(s, succ, loc), -1.0},
+                                             {get_value(p, job->j_id, loc), 1.0}};
             add_constraint(row, op, b, "addprecedenceconstraints");
         }
     }
 
-    LOG_F(INFO, "%s finished successfully", __FUNCTION__);
+    LOG_F(INFO, "%s finished successfully", source_location_to_string(loc).c_str());
 }
 
 void ConstraintModelBuilder::add_renewable_resource_constraints(const TimeIndexedModelVariableMapping::map3to1 &x)
 {
-    LOG_F(INFO, "%s started", __FUNCTION__);
+    const std::source_location loc = std::source_location::current();
+
+    LOG_F(INFO, "%s started", source_location_to_string(loc).c_str());
 
     size_t nb_resources = problem_instance.resources.size();
 
@@ -145,7 +150,7 @@ void ConstraintModelBuilder::add_renewable_resource_constraints(const TimeIndexe
     {
         for (size_t k = 0; k < nb_resources; ++k)
         {
-            double b = this->problem_instance.resources.at(k).units;
+            auto b = static_cast<double>(this->problem_instance.resources.at(k).units);
             Operator op = Operator::LESS_EQUAL;
             SparseMatrix<double>::Row row;
 
@@ -160,9 +165,8 @@ void ConstraintModelBuilder::add_renewable_resource_constraints(const TimeIndexe
                     for (size_t s = s_start; s <= t; ++s)
                     {
                         // FIXME
-                        row.emplace_back(
-                            get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(s)}, __FUNCTION__),
-                            mode.requested_resources.at(k).units);
+                        row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(s)}, loc),
+                                         mode.requested_resources.at(k).units);
                     }
                     ++mode_id;
                 }
@@ -172,7 +176,7 @@ void ConstraintModelBuilder::add_renewable_resource_constraints(const TimeIndexe
         }
     }
 
-    LOG_F(INFO, "%s finished successfully", __FUNCTION__);
+    LOG_F(INFO, "%s finished successfully", source_location_to_string(loc).c_str());
 }
 
 void ConstraintModelBuilder::add_constraint(SparseMatrix<double>::Row &row, Operator op, const double &b,
