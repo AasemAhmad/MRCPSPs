@@ -25,14 +25,13 @@ template <typename SortableElement> class Queue
     template <typename ElementIDType> std::shared_ptr<SortableElement> find_item(const ElementIDType &id) const;
     template <typename CompareFunc> void sort_queue(CompareFunc compareFunc);
     bool is_empty() const;
-    int nb_items() const;
+    size_t nb_items() const;
 
   private:
     std::list<std::shared_ptr<SortableElement>> elements;
 };
 
 template <typename SortableElement> Queue<SortableElement>::Queue() = default;
-
 
 template <typename SortableElement> auto Queue<SortableElement>::begin() -> SortableElementIterator
 {
@@ -73,12 +72,10 @@ template <typename SortableElement>
 template <typename ElementIDType>
 std::shared_ptr<SortableElement> Queue<SortableElement>::find_item(const ElementIDType &id) const
 {
-    for (const auto &element : elements)
+    if (auto it = std::ranges::find_if(elements, [&id](const auto &element) { return element->j_id == id; });
+        it != elements.end())
     {
-        if (element->get_id() == id)
-        {
-            return element;
-        }
+        return *it;
     }
     return nullptr;
 }
@@ -92,4 +89,4 @@ void Queue<SortableElement>::sort_queue(CompareFunc compareFunc)
 
 template <typename SortableElement> bool Queue<SortableElement>::is_empty() const { return elements.empty(); }
 
-template <typename SortableElement> int Queue<SortableElement>::nb_items() const { return elements.size(); }
+template <typename SortableElement> size_t Queue<SortableElement>::nb_items() const { return elements.size(); }

@@ -1,4 +1,5 @@
 #include "ProblemInstance/ProblemInstance.hpp"
+#include "ProblemInstance/Job.hpp"
 
 ProblemInstance::ProblemInstance(const std::string &name) : name(name) {}
 
@@ -15,6 +16,6 @@ void ProblemInstance::append_job(std::shared_ptr<Job> job) { job_queue.append_it
 
 std::shared_ptr<Job> ProblemInstance::find_job(const std::string &job_id) const { return job_queue.find_item(job_id); }
 
-void ProblemInstance::sort_jobs_by_id() { job_queue.sort_queue(Job::compare_by_job_id); }
+void ProblemInstance::sort_jobs_by_id() { job_queue.sort_queue(compare_by_job_id); }
 
-void ProblemInstance::sort_jobs_by_release_time() { job_queue.sort_queue(Job::compare_by_release_time); }
+void ProblemInstance::sort_jobs_by_release_time() { job_queue.sort_queue(compare_by_release_time); }

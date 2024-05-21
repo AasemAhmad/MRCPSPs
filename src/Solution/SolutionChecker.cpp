@@ -73,7 +73,7 @@ bool SolutionChecker::check_resouce_usage_at_given_time(std::vector<JobAllocatio
 bool SolutionChecker::check_resource_usage_over_time_period() const
 {
     PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_items(),
-                     "at least one job is not allocated %ld, %d", this->solution.job_allocations.size(),
+                     "at least one job is not allocated %ld, %ld", this->solution.job_allocations.size(),
                      this->problem_instance.job_queue.nb_items());
 
     std::vector<JobAllocation> allocations = sort_by_field(this->solution.job_allocations, &JobAllocation::start_time);
@@ -91,7 +91,7 @@ bool SolutionChecker::check_resource_usage_over_time_period() const
 bool SolutionChecker::check_resource_usage_over_intervals() const
 {
     PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_items(),
-                     "at least one job is not allocated %ld, %d", this->solution.job_allocations.size(),
+                     "at least one job is not allocated %ld, %ld", this->solution.job_allocations.size(),
                      this->problem_instance.job_queue.nb_items());
 
     std::vector<JobAllocation> allocations = sort_by_field(this->solution.job_allocations, &JobAllocation::start_time);

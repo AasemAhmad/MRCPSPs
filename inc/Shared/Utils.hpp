@@ -42,7 +42,7 @@ void set_value_helper(Container &container, const typename Container::key_type &
                       const std::source_location &loc)
 {
     auto [iterator, emplaced] = container.try_emplace(key, value);
-    PPK_ASSERT_ERROR(emplaced != false, "Value with the given key was found, function %s!",
+    PPK_ASSERT_ERROR(emplaced, "Value with the given key was found, function %s!",
                      source_location_to_string(loc).c_str());
 }
 
@@ -63,12 +63,6 @@ void set_value(Container &container, const typename Container::key_type &key, co
                      source_location_to_string(loc).c_str());
     set_value_helper(container, key, value, loc);
 }
-
-template <typename T, typename Field> struct SortByField
-{
-    Field T::*field_ptr;
-    bool operator()(const T &a, const T &b) const { return a.*field_ptr < b.*field_ptr; }
-};
 
 template <typename Container, typename T, typename Field>
 Container sort_by_field(const Container &input, Field T::*field_ptr)
