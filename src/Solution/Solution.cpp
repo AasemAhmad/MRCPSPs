@@ -86,15 +86,49 @@ std::string Solution::get_solution_as_string() const
     return string_stream.str() + job_allocations_string;
 }
 
-void Solution::inverse_allocated_resouces(const ProblemInstance &problem_instance)
+std::vector<size_t> Solution::get_allocated_units_on_given_resource(
+    const std::string &resource_id, size_t start_time, size_t requested_units, size_t duration,
+    std::map<std::string, std::vector<size_t>, std::less<>> &resource_availability) const
 {
+    PPK_ASSERT_ERROR(requested_units > 0, "requested resource units must be greated than 0");
+    PPK_ASSERT_ERROR(duration > 0, "duration must be greater than 0");
+
+    std::vector<size_t> units;
+    units.reserve(requested_units);
+
+    auto &res_availability = resource_availability.at(resource_id);
+    for (size_t r_unit = 0; r_unit < res_availability.size(); ++r_unit)
+    {
+        if (res_availability[r_unit] <= start_time)
+        {
+            units.emplace_back(r_unit);
+            res_availability[r_unit] = start_time + duration;
+
+            if (units.size() == requested_units)
+            {
+                break;
+            }
+        }
+    }
+    PPK_ASSERT_ERROR(units.size() == requested_units,
+                     "Failed to allocated requested resources at resourc %s, allocated = %ld, requested = %ld",
+                     resource_id.c_str(), units.size(), requested_units);
+    return units;
+}
+
+void Solution::inverse_allocated_resouce_units(const ProblemInstance &problem_instance)
+{
+    PPK_ASSERT_ERROR(this->job_allocations.size() == problem_instance.job_queue.nb_items(),
+                     "at least one job was not allocated %ld, %d", this->job_allocations.size(),
+                     problem_instance.job_queue.nb_items());
     this->job_allocations = sort_by_field(this->job_allocations, &JobAllocation::start_time);
 
     std::map<std::string, std::vector<size_t>, std::less<>> resource_availability;
 
     for (const auto &resource : problem_instance.resources)
     {
-        resource_availability.try_emplace(resource.id, std::vector<size_t>(resource.units, 0));
+        auto [iterator, emplaced_resource_units] = resource_availability.try_emplace(resource.id, resource.units, 0);
+        PPK_ASSERT_ERROR(emplaced_resource_units, "Failed to emplace resource uints");
     }
 
     for (auto &job_allocation : this->job_allocations)
@@ -102,29 +136,25 @@ void Solution::inverse_allocated_resouces(const ProblemInstance &problem_instanc
         std::string job_id = job_allocation.job_id;
         auto job = problem_instance.job_queue.find_item(job_id);
         PPK_ASSERT_ERROR(job != nullptr, "Invalid job_id %s", job_id.c_str());
-        PPK_ASSERT_ERROR(job_allocation.mode_id > 0, "Invalid value %ld mode id must be greater than 0",
+        PPK_ASSERT_ERROR(job_allocation.mode_id > 0, "Invalid value %ld",
                          job_allocation.mode_id);
         size_t mode_index = job_allocation.mode_id - 1;
         PPK_ASSERT_ERROR(mode_index < job->modes.size(), "Invalid value %ld", mode_index);
 
-        const Mode mode = job->modes.at(mode_index);
+        const Mode &mode = job->modes.at(mode_index);
         size_t resouce_index = 0;
+
         for (const auto &[resource_id, resource] : problem_instance.resources)
         {
-            std::vector<size_t> units;
-            for (size_t i = 0; i < resource_availability.at(resource_id).size(); ++i)
+            size_t requested_units = mode.requested_resources.at(resouce_index).units;
+            if (size_t duration = job_allocation.duration; requested_units > 0 && duration > 0)
             {
-                if ((resource_availability.at(resource_id).at(i) <= job_allocation.start_time))
-                {
-                    units.push_back(i);
-                    resource_availability.at(resource_id).at(i) = job_allocation.start_time + job_allocation.duration;
-                    if (units.size() == mode.requested_resources.at(resouce_index).units)
-                    {
-                        break;
-                    }
-                }
+                std::vector<size_t> units = this->get_allocated_units_on_given_resource(
+                    resource_id, job_allocation.start_time, requested_units, duration, resource_availability);
+
+                auto [iterator, emplaced_units] = job_allocation.units_map.try_emplace(resouce_index, std::move(units));
+                PPK_ASSERT_ERROR(emplaced_units, "resource units were already inserted");
             }
-            job_allocation.units_map.insert({resouce_index, units});
             ++resouce_index;
         }
     }
@@ -139,8 +169,8 @@ void write_solution_to_excel_file(const std::string &instance_solution_file, con
     static const std::vector<std::string> statistics_file_header = {"Instance_ID", "Run_Time", "Gap", "Makespan",
                                                                     "Status"};
 
-    static ResultWriter instance_solution_writer(instance_solution_file, std::move(instance_solution_file_header));
-    static ResultWriter statistics_writer(statistics_file, std::move(statistics_file_header));
+    static ResultWriter instance_solution_writer(instance_solution_file, instance_solution_file_header);
+    static ResultWriter statistics_writer(statistics_file, statistics_file_header);
 
     for (const auto &item : solution.job_allocations)
     {
@@ -150,7 +180,7 @@ void write_solution_to_excel_file(const std::string &instance_solution_file, con
                                           {"Processing_Time", std::to_string(item.duration)},
                                           {"Finish_Time", std::to_string(item.start_time + item.duration)},
                                           {"Mode_ID", std::to_string(item.mode_id)}};
-        instance_solution_writer.write(std::move(solution_row));
+        instance_solution_writer.write(solution_row);
     }
 
     ResultWriter::Row statistics_row = {{"Instance_ID", instance_id},
@@ -158,7 +188,7 @@ void write_solution_to_excel_file(const std::string &instance_solution_file, con
                                         {"Gap", std::to_string(solution.gap)},
                                         {"Makespan", std::to_string(solution.makespan)},
                                         {"Status", convert_solution_state_to_string(solution.solution_state)}};
-    statistics_writer.write(std::move(statistics_row));
+    statistics_writer.write(statistics_row);
 }
 
 void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocations, const std::string &filename)
@@ -173,19 +203,22 @@ void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocat
         job_allocation.AddMember("start_time", job.start_time, allocator);
         job_allocation.AddMember("duration", job.duration, allocator);
         job_allocation.AddMember("mode_id", job.mode_id, allocator);
-        rapidjson::Value units_map_value(rapidjson::kArrayType);
+
+        rapidjson::Value units_allocation_maping(rapidjson::kArrayType);
+        rapidjson::Value resource_id_mapping(rapidjson::kArrayType);
 
         for (const auto &[resource_id, units] : job.units_map)
         {
-            rapidjson::Value allocation_array_value(rapidjson::kArrayType);
+            rapidjson::Value uints_allocation_array_value(rapidjson::kArrayType);
+            resource_id_mapping.PushBack(resource_id, allocator);
             for (const auto &element : units)
             {
-                allocation_array_value.PushBack(element, allocator);
+                uints_allocation_array_value.PushBack(element, allocator);
             }
-            units_map_value.PushBack(allocation_array_value, allocator);
+            units_allocation_maping.PushBack(uints_allocation_array_value, allocator);
         }
-        job_allocation.AddMember("units_map", units_map_value, allocator);
-
+        job_allocation.AddMember("resource_ids", resource_id_mapping, allocator);
+        job_allocation.AddMember("units_map", units_allocation_maping, allocator);
         jobs.PushBack(job_allocation, allocator);
     }
     doc.AddMember("jobs", jobs, allocator);

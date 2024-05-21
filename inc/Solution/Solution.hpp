@@ -38,8 +38,13 @@ struct Solution
     double runtime = 0.0;
     double mem_usage = 0.0;
     std::vector<JobAllocation> job_allocations;
-    void inverse_allocated_resouces(const ProblemInstance &problem_instance);
+    void inverse_allocated_resouce_units(const ProblemInstance &problem_instance);
     std::string get_solution_as_string() const;
+
+  private:
+    std::vector<size_t> get_allocated_units_on_given_resource(
+        const std::string &resource_id, size_t start_time, size_t requested_units, size_t duration,
+        std::map<std::string, std::vector<size_t>, std::less<>> &resource_availability) const;
 };
 
 void write_solution_to_excel_file(const std::string &instance_solution_file, const std::string &statistics_file,

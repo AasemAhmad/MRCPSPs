@@ -4,18 +4,11 @@ ProblemInstance::ProblemInstance(const std::string &name) : name(name) {}
 
 void ProblemInstance::set_makespan_upperbound()
 {
-    if (makespan_upperbound == 0)
-    {
-        for (const auto &job : job_queue)
-        {
-            size_t max_value = 0;
-            for (const auto &mode : job->modes)
-            {
-                max_value = std::max(max_value, mode.processing_time);
-            }
-            makespan_upperbound += max_value;
-        }
-    }
+    makespan_upperbound = 0;
+    std::ranges::for_each(job_queue, [this](const auto &job) {
+        auto max_value = std::ranges::max(job->modes, {}, &Mode::processing_time);
+        makespan_upperbound += max_value.processing_time;
+    });
 }
 
 void ProblemInstance::append_job(std::shared_ptr<Job> job) { job_queue.append_item(job); }

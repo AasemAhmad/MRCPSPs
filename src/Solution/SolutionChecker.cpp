@@ -45,7 +45,6 @@ bool SolutionChecker::check_resouce_usage_at_given_time(std::vector<JobAllocatio
     std::vector<size_t> consumed_capacity(this->problem_instance.resources.size(), 0);
 
     PPK_ASSERT_ERROR(allocations.size() > 0, "job allocation is empty");
-
     for (auto it = allocations.begin(); it != allocations.end();)
     {
         if ((it->start_time <= time) && (it->start_time + it->duration > time))
@@ -73,6 +72,10 @@ bool SolutionChecker::check_resouce_usage_at_given_time(std::vector<JobAllocatio
 
 bool SolutionChecker::check_resource_usage_over_time_period() const
 {
+    PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_items(),
+                     "at least one job is not allocated %ld, %d", this->solution.job_allocations.size(),
+                     this->problem_instance.job_queue.nb_items());
+
     std::vector<JobAllocation> allocations = sort_by_field(this->solution.job_allocations, &JobAllocation::start_time);
 
     for (size_t time = 0; time < this->solution.makespan; ++time)
@@ -87,6 +90,10 @@ bool SolutionChecker::check_resource_usage_over_time_period() const
 
 bool SolutionChecker::check_resource_usage_over_intervals() const
 {
+    PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_items(),
+                     "at least one job is not allocated %ld, %d", this->solution.job_allocations.size(),
+                     this->problem_instance.job_queue.nb_items());
+
     std::vector<JobAllocation> allocations = sort_by_field(this->solution.job_allocations, &JobAllocation::start_time);
 
     std::set<size_t> recource_allocation_changed_time;

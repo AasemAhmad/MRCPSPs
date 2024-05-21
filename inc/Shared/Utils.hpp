@@ -7,16 +7,18 @@
 #include <string>
 #include <type_traits>
 
-template <typename CharT = char>
-std::basic_string<CharT> source_location_to_string(const std::source_location &loc)
+template <typename CharT = char> std::basic_string<CharT> source_location_to_string(const std::source_location &loc)
 {
- std::string full_function_name = loc.function_name();
+    std::string full_function_name = loc.function_name();
     size_t pos = full_function_name.find('(');
-    if (pos != std::string::npos) {
+    if (pos != std::string::npos)
+    {
         return std::basic_string<CharT>(full_function_name.begin(), full_function_name.begin() + pos) + "()";
-    } else {
+    } else
+    {
         return std::basic_string<CharT>(full_function_name.begin(), full_function_name.end()) + "()";
-    }}
+    }
+}
 
 template <typename T> T random_range(T min, T max)
 {
@@ -39,8 +41,8 @@ template <class Container, class T>
 void set_value_helper(Container &container, const typename Container::key_type &key, const T &value,
                       const std::source_location &loc)
 {
-    auto p = container.insert({key, value});
-    PPK_ASSERT_ERROR(p.second != false, "Value with the given key was found, function %s!",
+    auto [iterator, emplaced] = container.try_emplace(key, value);
+    PPK_ASSERT_ERROR(emplaced != false, "Value with the given key was found, function %s!",
                      source_location_to_string(loc).c_str());
 }
 

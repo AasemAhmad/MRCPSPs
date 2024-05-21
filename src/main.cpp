@@ -158,9 +158,6 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("results_directory"));
     LOG_F(INFO, "results_directory =  %s", json_doc_solver_options["results_directory"].GetString());
     Settings::Solver::RESULTS_DIRECTORY = json_doc_solver_options["results_directory"].GetString();
-    //LOG_F(INFO, "%s", Settings::Solver::RESULTS_DIRECTORY);
-    LOG_F(INFO, "%s", std::string(Settings::Solver::RESULTS_DIRECTORY).c_str());
-
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("nb_of_thread"));
     LOG_F(INFO, "nb_of_thread =  %d", json_doc_solver_options["nb_of_thread"].GetUint());
@@ -252,7 +249,7 @@ static void write_results(const ProblemInstance &problem_instance, const std::st
     LOG_F(INFO, "%s", solution.get_solution_as_string().c_str());
     if (Settings::Solver::DRAW_GANTT_CHART)
     {
-        solution.inverse_allocated_resouces(problem_instance);
+        solution.inverse_allocated_resouce_units(problem_instance);
         draw_gantt_chart_from_json(solution.job_allocations, problem_instance.resources);
     }
 }
@@ -285,13 +282,12 @@ static void run_solver(const std::string &programm_task_options)
             // TODO
         }
 
-        if (Settings::Solver::CHECK_SOLUTION)
-        {
-            PPK_ASSERT_ERROR(run_solution_checker(problem_instance, solution), "Wrong Solution");
-        }
-
         if (solution.solution_state == SolutionState::FEASIBLE || solution.solution_state == SolutionState::OPTIMAL)
         {
+            if (Settings::Solver::CHECK_SOLUTION)
+            {
+                PPK_ASSERT_ERROR(run_solution_checker(problem_instance, solution), "Wrong Solution");
+            }
             write_results(problem_instance, short_instance_name, solution);
         }
     }

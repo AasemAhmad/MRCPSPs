@@ -30,7 +30,7 @@ void ResultWriter::write_header_to_excel()
     ++current_row_index;
 }
 
-void ResultWriter::write(const ResultWriter::Row &&row)
+void ResultWriter::write(const ResultWriter::Row &row)
 {
     for (const auto &[column_index, column_name] : column_map)
     {
