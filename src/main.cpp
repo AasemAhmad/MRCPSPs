@@ -267,6 +267,7 @@ static void run_solver(const std::string &programm_task_options)
 
         InstanceReader reader(problem_instance.name);
         reader.read(problem_instance);
+        PPK_ASSERT_ERROR(problem_instance.validate_problem_instance(), "Invalid problem instance");
         Solution solution;
         if (Settings::Solver::USE_GUROBI || Settings::Solver::USE_CPLEX)
         {

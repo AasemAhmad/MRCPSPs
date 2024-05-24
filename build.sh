@@ -10,7 +10,7 @@ else
     echo "creating ${DIR}"
     mkdir -p ${DIR}
     cd build
-    cmake  -DCMAKE_BUILD_TYPE=Debug -Wno-dev .. 
+    cmake -DLIBRARY_LINKAGE=STATIC -DCMAKE_BUILD_TYPE=Debug -Wno-dev .. 
     make -j
 fi
 

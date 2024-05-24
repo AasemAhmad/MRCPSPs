@@ -6,7 +6,6 @@
 #include <rapidjson/document.h>
 #include <string>
 
-
 void InstanceReader::read(ProblemInstance &problem_instance)
 {
     PPK_ASSERT_ERROR(this->instance_file.is_open(), "Failed to open the file");

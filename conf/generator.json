@@ -14,5 +14,5 @@
   "max_nb_resouce_units_per_job" : 3,
   "min_nb_resource_units_per_job": 0,
   "first_instance_index": 1,
-  "last_instance_index": 2
+  "last_instance_index": 5
 }

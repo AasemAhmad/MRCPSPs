@@ -1,6 +1,5 @@
 #! /bin/sh
 
-current_directory=$(pwd)
 program_task="solver"
 program_task_conf="solver.json"
 
