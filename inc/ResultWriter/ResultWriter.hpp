@@ -1,9 +1,8 @@
 #pragma once
-
+#include <OpenXLSX.hpp>
 #include <map>
 #include <string>
 #include <vector>
-#include <xlsxwriter.h>
 
 class ResultWriter
 {
@@ -12,17 +11,21 @@ class ResultWriter
     ResultWriter(const ResultWriter &) = delete;
     ResultWriter &operator=(const ResultWriter &) = delete;
     ~ResultWriter();
+
     using ColumnName = std::string;
-    using ColumnIndex = size_t;
+    using ColumnIndex = uint16_t;
     using ColumnValue = std::string;
     using Row = std::map<ColumnName, ColumnValue, std::less<>>;
-    void write(const Row &row);
+
+    void create_new_sheet(const std::string &sheet_name) const;
+    void write_header(const std::string &sheet_name) const;
+    void write_rows(const std::vector<Row> &rows, const std::string &sheet_name) const;
+    void clear_cell_contents(const std::string &sheet_name) const;
+    bool is_sheet_exists(const std::string &sheet_name) const;
+    void close_work_book();
+    void flush();
 
   private:
-    void write_header_to_excel();
-    using map1ton = std::map<std::string, std::vector<std::string>, std::less<>>;
+    OpenXLSX::XLDocument doc;
     std::map<ColumnIndex, ColumnName> column_map;
-    lxw_workbook *workbook;
-    lxw_worksheet *worksheet;
-    size_t current_row_index = 0;
 };

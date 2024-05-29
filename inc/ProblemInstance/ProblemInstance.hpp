@@ -20,7 +20,7 @@ class ProblemInstance
     Queue<Job> job_queue;
     std::vector<Resource> resources;
     std::string name;
-    size_t makespan_upperbound = 0;
+    size_t makespan_upper_bound = 0;
 
   private:
     bool validate_dependencies() const;

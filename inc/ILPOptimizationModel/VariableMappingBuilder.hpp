@@ -29,10 +29,10 @@ class TimeIndexedModelVariableMapping
   private:
     const ProblemInstance &problem_instance;
     void add_objective_function_variables();
-    void add_task_startime_binary_variables();
-    void add_task_processing_time_variables();
-    void add_task_startime_variable();
-    void add_task_resources_allocation_variables();
+    void add_jobs_start_time_binary_variables();
+    void add_jobs_processing_time_variables();
+    void add_jobs_start_time_variables();
+    void add_jobs_resources_allocation_variables();
 };
 
 TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solution,

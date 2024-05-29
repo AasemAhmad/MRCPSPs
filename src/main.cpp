@@ -244,7 +244,7 @@ static void write_results(const ProblemInstance &problem_instance, const std::st
     std::string statistic_file = std::format("{}statistics.xlsx", Settings::Solver::RESULTS_DIRECTORY);
 
     LOG_F(INFO, "solution file = %s", solution_file.c_str());
-    write_solution_to_excel_file(solution_file, statistic_file, short_instance_name, solution);
+    write_results_to_excel_file(solution_file, statistic_file, short_instance_name, solution);
 
     LOG_F(INFO, "%s", solution.get_solution_as_string().c_str());
     if (Settings::Solver::DRAW_GANTT_CHART)

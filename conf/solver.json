@@ -1,6 +1,6 @@
 {
   "first_instance_index": 1,
-  "last_instance_index": 5,
+  "last_instance_index": 2,
   "instances_directory_path": "../../Instances/Set10/",
   "instance_file_name": "instance",
   "results_directory": "../../Result/",
@@ -11,7 +11,7 @@
   "use_cp": false,
   "check_solution": true,
   "draw_gantt_chart": true,
-  "max_runtime": 30,
+  "max_runtime": 15,
   "init_ilp_solution": false,
   "ilp_relative_gap": 0
 }

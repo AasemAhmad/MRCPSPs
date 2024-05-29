@@ -1,5 +1,6 @@
 #include "Solution/Solution.hpp"
 #include "External/pempek_assert.hpp"
+#include "ResultWriter/ResultWriter.hpp"
 #include "loguru.hpp"
 #include <Python.h>
 #include <Shared/Utils.hpp>
@@ -136,8 +137,7 @@ void Solution::inverse_allocated_resouce_units(const ProblemInstance &problem_in
         std::string job_id = job_allocation.job_id;
         auto job = problem_instance.job_queue.find_item(job_id);
         PPK_ASSERT_ERROR(job != nullptr, "Invalid job_id %s", job_id.c_str());
-        PPK_ASSERT_ERROR(job_allocation.mode_id > 0, "Invalid value %ld",
-                         job_allocation.mode_id);
+        PPK_ASSERT_ERROR(job_allocation.mode_id > 0, "Invalid value %ld", job_allocation.mode_id);
         size_t mode_index = job_allocation.mode_id - 1;
         PPK_ASSERT_ERROR(mode_index < job->modes.size(), "Invalid value %ld", mode_index);
 
@@ -160,17 +160,22 @@ void Solution::inverse_allocated_resouce_units(const ProblemInstance &problem_in
     }
 }
 
-void write_solution_to_excel_file(const std::string &instance_solution_file, const std::string &statistics_file,
-                                  const std::string &instance_id, const Solution &solution)
+void write_results_to_excel_file(const std::string &instance_solution_file, const std::string &statistics_file,
+                                 const std::string &instance_id, const Solution &solution)
+{
+    write_solution_to_excel_file(instance_solution_file, instance_id, solution);
+    write_statistics_to_excel_file(statistics_file, instance_id, solution);
+}
+
+void write_solution_to_excel_file(const std::string &instance_solution_file, const std::string &instance_id,
+                                  const Solution &solution)
 {
     static const std::vector<std::string> instance_solution_file_header = {
         "Instance_ID", "Job_ID", "Start_Time", "Processing_Time", "Finish_Time", "Mode_ID"};
 
-    static const std::vector<std::string> statistics_file_header = {"Instance_ID", "Run_Time", "Gap", "Makespan",
-                                                                    "Status"};
-
     static ResultWriter instance_solution_writer(instance_solution_file, instance_solution_file_header);
-    static ResultWriter statistics_writer(statistics_file, statistics_file_header);
+
+    std::vector<ResultWriter::Row> rows;
 
     for (const auto &item : solution.job_allocations)
     {
@@ -180,15 +185,39 @@ void write_solution_to_excel_file(const std::string &instance_solution_file, con
                                           {"Processing_Time", std::to_string(item.duration)},
                                           {"Finish_Time", std::to_string(item.start_time + item.duration)},
                                           {"Mode_ID", std::to_string(item.mode_id)}};
-        instance_solution_writer.write(solution_row);
+
+        rows.push_back(solution_row);
     }
 
-    ResultWriter::Row statistics_row = {{"Instance_ID", instance_id},
-                                        {"Run_Time", std::to_string(solution.runtime)},
-                                        {"Gap", std::to_string(solution.gap)},
-                                        {"Makespan", std::to_string(solution.makespan)},
-                                        {"Status", convert_solution_state_to_string(solution.solution_state)}};
-    statistics_writer.write(statistics_row);
+    instance_solution_writer.create_new_sheet(instance_id);
+    instance_solution_writer.write_header(instance_id);
+    instance_solution_writer.write_rows(rows, instance_id);
+    instance_solution_writer.flush();
+}
+
+void write_statistics_to_excel_file(const std::string &statistics_file, const std::string &instance_id,
+                                    const Solution &solution)
+{
+    static const std::vector<std::string> statistics_file_header = {"Instance_ID", "Run_Time", "Gap", "Makespan",
+                                                                    "Status"};
+    static ResultWriter statistics_writer(statistics_file, statistics_file_header);
+
+    std::vector<ResultWriter::Row> statistics_row = {
+        {{"Instance_ID", instance_id},
+         {"Run_Time", std::to_string(solution.runtime)},
+         {"Gap", std::to_string(solution.gap)},
+         {"Makespan", std::to_string(solution.makespan)},
+         {"Status", convert_solution_state_to_string(solution.solution_state)}}};
+
+    const std::string sheet_name = "statistics";
+
+    if (!statistics_writer.is_sheet_exists(sheet_name))
+    {
+        statistics_writer.create_new_sheet(sheet_name);
+        statistics_writer.write_header(sheet_name);
+    }
+    statistics_writer.write_rows(statistics_row, sheet_name);
+    statistics_writer.flush();
 }
 
 void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocations, const std::string &filename)

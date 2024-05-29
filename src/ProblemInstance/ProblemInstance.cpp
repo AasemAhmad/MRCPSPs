@@ -7,10 +7,10 @@ ProblemInstance::ProblemInstance(const std::string &name) : name(name) {}
 
 void ProblemInstance::set_makespan_upperbound()
 {
-    makespan_upperbound = 0;
+    makespan_upper_bound = 0;
     std::ranges::for_each(job_queue, [this](const auto &job) {
         auto max_value = std::ranges::max(job->modes, {}, &Mode::processing_time);
-        makespan_upperbound += max_value.processing_time;
+        makespan_upper_bound += max_value.processing_time;
     });
 }
 

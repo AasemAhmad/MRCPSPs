@@ -1,44 +1,73 @@
 #include "ResultWriter/ResultWriter.hpp"
 #include "External/pempek_assert.hpp"
+#include "loguru.hpp"
+#include <cstdint>
+#include <format>
 
 ResultWriter::ResultWriter(const std::string &file_name, const std::vector<std::string> &header)
 {
-    workbook = workbook_new(file_name.c_str());
-    worksheet = workbook_add_worksheet(workbook, nullptr);
-
-    worksheet_set_column(worksheet, 0, 255, 20, nullptr);
-
-    size_t col_index = 0;
+    doc.create(file_name);
+    PPK_ASSERT_ERROR(doc.isOpen(), "Failed to open the file");
+    uint16_t col_index = 0;
     for (const auto &item : header)
     {
         column_map[col_index] = item;
         ++col_index;
     }
-
-    write_header_to_excel();
 }
 
-ResultWriter::~ResultWriter() { workbook_close(workbook); }
+ResultWriter::~ResultWriter() { close_work_book(); }
 
-void ResultWriter::write_header_to_excel()
+void ResultWriter::create_new_sheet(const std::string &sheet_name) const
 {
+    PPK_ASSERT_ERROR(!is_sheet_exists(sheet_name), "sheet %s exists", sheet_name.c_str());
+    doc.workbook().addWorksheet(sheet_name);
+}
+
+void ResultWriter::write_header(const std::string &sheet_name) const
+{
+    PPK_ASSERT_ERROR(is_sheet_exists(sheet_name), "sheet %s does not exist", sheet_name.c_str());
+    auto sheet = doc.workbook().worksheet(sheet_name);
+    uint32_t current_row = sheet.rowCount();
+    PPK_ASSERT_ERROR(current_row == 0, "sheet %s is not empty", sheet_name.c_str());
     for (const auto &[column_index, column_name] : column_map)
     {
-        worksheet_write_string(worksheet, static_cast<unsigned short>(current_row_index),
-                               static_cast<unsigned short>(column_index), column_name.c_str(), nullptr);
+        sheet.cell(current_row + 1, column_index + 1).value() = column_name;
     }
-    ++current_row_index;
 }
 
-void ResultWriter::write(const ResultWriter::Row &row)
+void ResultWriter::write_rows(const std::vector<Row> &rows, const std::string &sheet_name) const
 {
-    for (const auto &[column_index, column_name] : column_map)
+    PPK_ASSERT_ERROR(is_sheet_exists(sheet_name), "sheet %s does not exist", sheet_name.c_str());
+    auto sheet = doc.workbook().worksheet(sheet_name);
+    uint32_t current_row = sheet.rowCount();
+
+    for (const auto &row : rows)
     {
-        size_t col_index = column_index;
-        const std::string &col_name = column_name;
-        PPK_ASSERT_ERROR(row.count(col_name) == 1, "Column %s does not exist", col_name.c_str());
-        worksheet_write_string(worksheet, static_cast<unsigned short>(current_row_index),
-                               static_cast<unsigned short>(col_index), row.at(col_name).c_str(), nullptr);
+        for (const auto &[column_index, column_name] : column_map)
+        {
+            PPK_ASSERT_ERROR(row.contains(column_name), "Invalid column name %s", column_name.c_str());
+            sheet.cell(current_row + 1, column_index + 1).value() = row.at(column_name);
+        }
+        ++current_row;
     }
-    ++current_row_index;
 }
+
+bool ResultWriter::is_sheet_exists(const std::string &sheet_name) const
+{
+    return doc.workbook().sheetExists(sheet_name);
+}
+
+void ResultWriter::clear_cell_contents(const std::string &sheet_name) const
+{
+    auto sheet = doc.workbook().worksheet(sheet_name);
+    sheet.range().clear();
+}
+
+void ResultWriter::close_work_book()
+{
+    doc.save();
+    doc.close();
+}
+
+void ResultWriter::flush() { doc.save(); }

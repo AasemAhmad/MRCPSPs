@@ -43,7 +43,7 @@ void ConstraintModelBuilder::add_job_proccessing_time_constraints(const TimeInde
         size_t mode_id = 1;
         for (const auto &mode : job->modes)
         {
-            for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
+            for (size_t t = 0; t < problem_instance.makespan_upper_bound; ++t)
             {
                 PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
                 row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, loc),
@@ -64,7 +64,7 @@ void ConstraintModelBuilder::add_job_proccessing_time_constraints(const TimeInde
         size_t mode_id = 1;
         for ([[maybe_unused]] const auto &_ : job->modes)
         {
-            for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
+            for (size_t t = 0; t < problem_instance.makespan_upper_bound; ++t)
             {
                 PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
                 row.emplace_back(get_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, loc), 1);
@@ -99,7 +99,7 @@ void ConstraintModelBuilder::add_job_start_time_constraints(const TimeIndexedMod
         double b = 0.0;
         Operator op = Operator::EQUAL;
         SparseMatrix<double>::Row row;
-        for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
+        for (size_t t = 0; t < problem_instance.makespan_upper_bound; ++t)
         {
             size_t mode_id = 1;
             for ([[maybe_unused]] const auto &_ : job->modes)
@@ -146,7 +146,7 @@ void ConstraintModelBuilder::add_renewable_resource_constraints(const TimeIndexe
 
     size_t nb_resources = problem_instance.resources.size();
 
-    for (size_t t = 0; t < problem_instance.makespan_upperbound; ++t)
+    for (size_t t = 0; t < problem_instance.makespan_upper_bound; ++t)
     {
         for (size_t k = 0; k < nb_resources; ++k)
         {

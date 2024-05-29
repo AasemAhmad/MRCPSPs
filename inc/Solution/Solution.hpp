@@ -2,8 +2,9 @@
 
 #include "ModelSolutionStatus.hpp"
 #include "ProblemInstance/ProblemInstance.hpp"
-#include "ResultWriter/ResultWriter.hpp"
 #include "Settings.hpp"
+#include <map>
+#include <string>
 
 enum class SolutionState
 {
@@ -47,8 +48,14 @@ struct Solution
         std::map<std::string, std::vector<size_t>, std::less<>> &resource_availability) const;
 };
 
-void write_solution_to_excel_file(const std::string &instance_solution_file, const std::string &statistics_file,
-                                  const std::string &instance_id, const Solution &solution);
+void write_results_to_excel_file(const std::string &instance_solution_file, const std::string &statistics_file,
+                                 const std::string &instance_id, const Solution &solution);
+
+void write_solution_to_excel_file(const std::string &instance_solution_file, const std::string &instance_id,
+                                  const Solution &solution);
+
+void write_statistics_to_excel_file(const std::string &statistics_file, const std::string &instance_id,
+                                    const Solution &solution);
 
 void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocations, const std::string &filename);
 void write_resources_to_json(const std::vector<int> &resource_capacities, const std::string &filename);

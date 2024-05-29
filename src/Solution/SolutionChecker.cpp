@@ -40,7 +40,7 @@ bool SolutionChecker::check_job_selected_processing_time() const
     return true;
 }
 
-bool SolutionChecker::check_resouce_usage_at_given_time(std::vector<JobAllocation> &allocations, size_t time) const
+bool SolutionChecker::check_resource_usage_at_given_time(std::vector<JobAllocation> &allocations, size_t time) const
 {
     std::vector<size_t> consumed_capacity(this->problem_instance.resources.size(), 0);
 
@@ -80,7 +80,7 @@ bool SolutionChecker::check_resource_usage_over_time_period() const
 
     for (size_t time = 0; time < this->solution.makespan; ++time)
     {
-        if (!check_resouce_usage_at_given_time(allocations, time))
+        if (!check_resource_usage_at_given_time(allocations, time))
         {
             return false;
         }
@@ -105,7 +105,7 @@ bool SolutionChecker::check_resource_usage_over_intervals() const
 
     for (const auto &time : recource_allocation_changed_time)
     {
-        if (!check_resouce_usage_at_given_time(allocations, time))
+        if (!check_resource_usage_at_given_time(allocations, time))
         {
             return false;
         }
