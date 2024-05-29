@@ -21,7 +21,7 @@ class ResultWriter
     void write_header(const std::string &sheet_name) const;
     void write_rows(const std::vector<Row> &rows, const std::string &sheet_name) const;
     void clear_cell_contents(const std::string &sheet_name) const;
-    bool is_sheet_exists(const std::string &sheet_name) const;
+    bool sheet_exists(const std::string &sheet_name) const;
     void close_work_book();
     void flush();
 

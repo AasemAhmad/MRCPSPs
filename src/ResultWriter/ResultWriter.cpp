@@ -20,13 +20,13 @@ ResultWriter::~ResultWriter() { close_work_book(); }
 
 void ResultWriter::create_new_sheet(const std::string &sheet_name) const
 {
-    PPK_ASSERT_ERROR(!is_sheet_exists(sheet_name), "sheet %s exists", sheet_name.c_str());
+    PPK_ASSERT_ERROR(!sheet_exists(sheet_name), "sheet %s exists", sheet_name.c_str());
     doc.workbook().addWorksheet(sheet_name);
 }
 
 void ResultWriter::write_header(const std::string &sheet_name) const
 {
-    PPK_ASSERT_ERROR(is_sheet_exists(sheet_name), "sheet %s does not exist", sheet_name.c_str());
+    PPK_ASSERT_ERROR(sheet_exists(sheet_name), "sheet %s does not exist", sheet_name.c_str());
     auto sheet = doc.workbook().worksheet(sheet_name);
     uint32_t current_row = sheet.rowCount();
     PPK_ASSERT_ERROR(current_row == 0, "sheet %s is not empty", sheet_name.c_str());
@@ -38,7 +38,7 @@ void ResultWriter::write_header(const std::string &sheet_name) const
 
 void ResultWriter::write_rows(const std::vector<Row> &rows, const std::string &sheet_name) const
 {
-    PPK_ASSERT_ERROR(is_sheet_exists(sheet_name), "sheet %s does not exist", sheet_name.c_str());
+    PPK_ASSERT_ERROR(sheet_exists(sheet_name), "sheet %s does not exist", sheet_name.c_str());
     auto sheet = doc.workbook().worksheet(sheet_name);
     uint32_t current_row = sheet.rowCount();
 
@@ -53,10 +53,7 @@ void ResultWriter::write_rows(const std::vector<Row> &rows, const std::string &s
     }
 }
 
-bool ResultWriter::is_sheet_exists(const std::string &sheet_name) const
-{
-    return doc.workbook().sheetExists(sheet_name);
-}
+bool ResultWriter::sheet_exists(const std::string &sheet_name) const { return doc.workbook().sheetExists(sheet_name); }
 
 void ResultWriter::clear_cell_contents(const std::string &sheet_name) const
 {

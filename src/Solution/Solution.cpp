@@ -163,12 +163,11 @@ void Solution::inverse_allocated_resouce_units(const ProblemInstance &problem_in
 void write_results_to_excel_file(const std::string &instance_solution_file, const std::string &statistics_file,
                                  const std::string &instance_id, const Solution &solution)
 {
-    write_solution_to_excel_file(instance_solution_file, instance_id, solution);
-    write_statistics_to_excel_file(statistics_file, instance_id, solution);
+    write_solution(instance_solution_file, instance_id, solution);
+    write_statistics(statistics_file, instance_id, solution);
 }
 
-void write_solution_to_excel_file(const std::string &instance_solution_file, const std::string &instance_id,
-                                  const Solution &solution)
+void write_solution(const std::string &instance_solution_file, const std::string &instance_id, const Solution &solution)
 {
     static const std::vector<std::string> instance_solution_file_header = {
         "Instance_ID", "Job_ID", "Start_Time", "Processing_Time", "Finish_Time", "Mode_ID"};
@@ -195,8 +194,7 @@ void write_solution_to_excel_file(const std::string &instance_solution_file, con
     instance_solution_writer.flush();
 }
 
-void write_statistics_to_excel_file(const std::string &statistics_file, const std::string &instance_id,
-                                    const Solution &solution)
+void write_statistics(const std::string &statistics_file, const std::string &instance_id, const Solution &solution)
 {
     static const std::vector<std::string> statistics_file_header = {"Instance_ID", "Run_Time", "Gap", "Makespan",
                                                                     "Status"};
@@ -211,7 +209,7 @@ void write_statistics_to_excel_file(const std::string &statistics_file, const st
 
     const std::string sheet_name = "statistics";
 
-    if (!statistics_writer.is_sheet_exists(sheet_name))
+    if (!statistics_writer.sheet_exists(sheet_name))
     {
         statistics_writer.create_new_sheet(sheet_name);
         statistics_writer.write_header(sheet_name);
