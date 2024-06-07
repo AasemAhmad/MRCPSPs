@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+struct Job;
+
+using JobPtr = std::shared_ptr<Job>;
+using JobConstPtr = std::shared_ptr<const Job>;
+
 struct Resource
 {
     std::string id;
@@ -18,12 +23,11 @@ struct Mode
 
 struct Job
 {
-    Job() = default;
-    std::string j_id;
+    std::string id;
     size_t release_time;
     std::vector<Mode> modes;
     std::vector<std::string> successors;
 };
 
-bool compare_by_job_id(const std::shared_ptr<Job> &j1, const std::shared_ptr<Job> &j2);
-bool compare_by_release_time(const std::shared_ptr<Job> &j1, const std::shared_ptr<Job> &j2);
+bool compare_by_job_id(const JobConstPtr &j1, const JobConstPtr &j2);
+bool compare_by_release_time(const JobConstPtr &j1, const JobConstPtr &j2);

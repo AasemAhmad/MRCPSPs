@@ -8,7 +8,7 @@ class InstanceReader
   public:
     explicit InstanceReader(const std::string &instance_file_name) : instance_file(instance_file_name)
     {
-        PPK_ASSERT_ERROR(instance_file.is_open(), "Failed to open the file");
+        PPK_ASSERT_ERROR(instance_file.is_open(), "Failed to open the file %s", instance_file_name.c_str());
     }
     InstanceReader(const InstanceReader &) = delete;
     InstanceReader &operator=(const InstanceReader &) = delete;

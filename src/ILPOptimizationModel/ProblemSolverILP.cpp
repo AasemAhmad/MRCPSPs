@@ -2,8 +2,8 @@
 #include "External/ILPSolverModel/ILPSolverInterface.hpp"
 #include "Settings.hpp"
 #include <chrono>
-#include <memory>
 #include <cmath>
+#include <memory>
 
 ProblemSolverILP::ProblemSolverILP(const ProblemInstance &problem_instance) : variable_mapping_ilp(problem_instance)
 {
@@ -16,9 +16,10 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
 
     Solution solution;
     SolutionILP solution_ilp;
-    std::unique_ptr<Solver> solver;
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+    std::unique_ptr<Solver> solver = nullptr;
+    PPK_ASSERT_ERROR(Settings::Solver::USE_GUROBI || Settings::Solver::USE_CPLEX, "Solver was not selected");
 
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     if (Settings::Solver::USE_GUROBI)
     {
         solver = std::make_unique<GurobiSolver>();
@@ -27,6 +28,8 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     {
         solver = std::make_unique<CplexSolver>();
     }
+
+    PPK_ASSERT_ERROR(solver, "Failed to create solver");
 
     solution_ilp = solver->solve_ilp(init_solution, ilp_model, Settings::Solver::VERBOSE, rel_gap, time_limit,
                                      Settings::Solver::NB_THREADS, 0);
@@ -54,7 +57,7 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
                 job_allocation.duration = job_durations.at(job_id);
                 job_allocation.mode_id = job_modes.at(job_id);
 
-                solution.job_allocations.push_back(std::move(job_allocation));
+                solution.job_allocations.emplace_back(std::move(job_allocation));
             }
         } catch (...)
         {
@@ -68,7 +71,7 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
 
 void ProblemSolverILP::construct(ConstraintModelBuilder &constraint_model_builder)
 {
-    constraint_model_builder.add_job_proccessing_time_constraints(variable_mapping_ilp.x, variable_mapping_ilp.p);
+    constraint_model_builder.add_job_processing_time_constraints(variable_mapping_ilp.x, variable_mapping_ilp.p);
 
     constraint_model_builder.add_job_start_time_constraints(variable_mapping_ilp.s, variable_mapping_ilp.x,
                                                             variable_mapping_ilp.p, variable_mapping_ilp.c_max);

@@ -17,6 +17,14 @@ class TimeIndexedModelVariableMapping
     using map2to1 = std::map<std::tuple<std::string, std::string>, size_t>;
     using map3to1 = std::map<std::tuple<std::string, std::string, std::string>, size_t>;
 
+  private:
+    const ProblemInstance &problem_instance;
+    void add_objective_function_variables();
+    void add_jobs_start_time_binary_variables();
+    void add_jobs_processing_time_variables();
+    void add_jobs_start_time_variables();
+    void add_jobs_resources_allocation_variables();
+
     map1to1 c_max;
     map3to1 x;
     map1to1 p;
@@ -26,13 +34,7 @@ class TimeIndexedModelVariableMapping
     std::vector<DecisionVariable> variables;
     std::vector<std::string> var_desc;
 
-  private:
-    const ProblemInstance &problem_instance;
-    void add_objective_function_variables();
-    void add_jobs_start_time_binary_variables();
-    void add_jobs_processing_time_variables();
-    void add_jobs_start_time_variables();
-    void add_jobs_resources_allocation_variables();
+    friend class ProblemSolverILP;
 };
 
 TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solution,

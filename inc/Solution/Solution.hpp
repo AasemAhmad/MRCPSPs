@@ -23,15 +23,14 @@ struct JobAllocation
     size_t start_time;
     size_t duration;
     size_t mode_id;
-    using ResouceID = size_t;
-    using ResouceUnits = std::vector<size_t>;
-    std::map<ResouceID, ResouceUnits> units_map;
+    using ResourceID = size_t;
+    using ResourceUnits = std::vector<size_t>;
+    std::map<ResourceID, ResourceUnits> units_map;
     std::string get_job_allocation_as_string() const;
 };
 
 struct Solution
 {
-    Solution() = default;
     SolutionState solution_state = SolutionState::UNKNOWN;
     double gap = Settings::Solver::ILP_RELATIVE_GAP;
     double objective_bound = -1;
@@ -39,7 +38,7 @@ struct Solution
     double runtime = 0.0;
     double mem_usage = 0.0;
     std::vector<JobAllocation> job_allocations;
-    void inverse_allocated_resouce_units(const ProblemInstance &problem_instance);
+    void inverse_allocated_resource_units(const ProblemInstance &problem_instance);
     std::string get_solution_as_string() const;
 
   private:

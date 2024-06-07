@@ -91,7 +91,7 @@ std::vector<size_t> Solution::get_allocated_units_on_given_resource(
     const std::string &resource_id, size_t start_time, size_t requested_units, size_t duration,
     std::map<std::string, std::vector<size_t>, std::less<>> &resource_availability) const
 {
-    PPK_ASSERT_ERROR(requested_units > 0, "requested resource units must be greated than 0");
+    PPK_ASSERT_ERROR(requested_units > 0, "requested resource units must be greater than 0");
     PPK_ASSERT_ERROR(duration > 0, "duration must be greater than 0");
 
     std::vector<size_t> units;
@@ -112,12 +112,12 @@ std::vector<size_t> Solution::get_allocated_units_on_given_resource(
         }
     }
     PPK_ASSERT_ERROR(units.size() == requested_units,
-                     "Failed to allocated requested resources at resourc %s, allocated = %ld, requested = %ld",
+                     "Failed to allocated requested resources at resource %s, allocated = %ld, requested = %ld",
                      resource_id.c_str(), units.size(), requested_units);
     return units;
 }
 
-void Solution::inverse_allocated_resouce_units(const ProblemInstance &problem_instance)
+void Solution::inverse_allocated_resource_units(const ProblemInstance &problem_instance)
 {
     PPK_ASSERT_ERROR(this->job_allocations.size() == problem_instance.job_queue.nb_items(),
                      "at least one job was not allocated %ld, %ld", this->job_allocations.size(),
@@ -129,33 +129,34 @@ void Solution::inverse_allocated_resouce_units(const ProblemInstance &problem_in
     for (const auto &resource : problem_instance.resources)
     {
         auto [iterator, emplaced_resource_units] = resource_availability.try_emplace(resource.id, resource.units, 0);
-        PPK_ASSERT_ERROR(emplaced_resource_units, "Failed to emplace resource uints");
+        PPK_ASSERT_ERROR(emplaced_resource_units, "Failed to emplace resource units");
     }
 
     for (auto &job_allocation : this->job_allocations)
     {
         std::string job_id = job_allocation.job_id;
-        auto job = problem_instance.job_queue.find_item(job_id);
+        auto job = problem_instance.job_queue.get_element(job_id);
         PPK_ASSERT_ERROR(job != nullptr, "Invalid job_id %s", job_id.c_str());
         PPK_ASSERT_ERROR(job_allocation.mode_id > 0, "Invalid value %ld", job_allocation.mode_id);
         size_t mode_index = job_allocation.mode_id - 1;
         PPK_ASSERT_ERROR(mode_index < job->modes.size(), "Invalid value %ld", mode_index);
 
         const Mode &mode = job->modes.at(mode_index);
-        size_t resouce_index = 0;
+        size_t resource_index = 0;
 
         for (const auto &[resource_id, resource] : problem_instance.resources)
         {
-            size_t requested_units = mode.requested_resources.at(resouce_index).units;
+            size_t requested_units = mode.requested_resources.at(resource_index).units;
             if (size_t duration = job_allocation.duration; requested_units > 0 && duration > 0)
             {
                 std::vector<size_t> units = this->get_allocated_units_on_given_resource(
                     resource_id, job_allocation.start_time, requested_units, duration, resource_availability);
 
-                auto [iterator, emplaced_units] = job_allocation.units_map.try_emplace(resouce_index, std::move(units));
+                auto [iterator, emplaced_units] =
+                    job_allocation.units_map.try_emplace(resource_index, std::move(units));
                 PPK_ASSERT_ERROR(emplaced_units, "resource units were already inserted");
             }
-            ++resouce_index;
+            ++resource_index;
         }
     }
 }
@@ -185,7 +186,7 @@ void write_solution(const std::string &instance_solution_file, const std::string
                                           {"Finish_Time", std::to_string(item.start_time + item.duration)},
                                           {"Mode_ID", std::to_string(item.mode_id)}};
 
-        rows.push_back(solution_row);
+        rows.emplace_back(solution_row);
     }
 
     instance_solution_writer.create_new_sheet(instance_id);
@@ -198,6 +199,8 @@ void write_statistics(const std::string &statistics_file, const std::string &ins
 {
     static const std::vector<std::string> statistics_file_header = {"Instance_ID", "Run_Time", "Gap", "Makespan",
                                                                     "Status"};
+    static const std::string sheet_name = "statistics";
+
     static ResultWriter statistics_writer(statistics_file, statistics_file_header);
 
     std::vector<ResultWriter::Row> statistics_row = {
@@ -206,8 +209,6 @@ void write_statistics(const std::string &statistics_file, const std::string &ins
          {"Gap", std::to_string(solution.gap)},
          {"Makespan", std::to_string(solution.makespan)},
          {"Status", convert_solution_state_to_string(solution.solution_state)}}};
-
-    const std::string sheet_name = "statistics";
 
     if (!statistics_writer.sheet_exists(sheet_name))
     {
@@ -218,7 +219,7 @@ void write_statistics(const std::string &statistics_file, const std::string &ins
     statistics_writer.flush();
 }
 
-void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocations, const std::string &filename)
+void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocations, const std::string &file_name)
 {
     rapidjson::Document doc(rapidjson::kObjectType);
     auto &allocator = doc.GetAllocator();
@@ -253,13 +254,13 @@ void write_job_allocations_to_json(const std::vector<JobAllocation> &job_allocat
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     doc.Accept(writer);
-    std::ofstream ofs(filename);
-    PPK_ASSERT_ERROR(ofs.is_open(), "file cannot be oppened");
+    std::ofstream ofs(file_name);
+    PPK_ASSERT_ERROR(ofs.is_open(), "Failed to open the file %s", file_name.c_str());
     ofs << buffer.GetString() << std::endl;
     ofs.close();
 }
 
-void write_resources_to_json(const std::vector<Resource> &resources, const std::string &filename)
+void write_resources_to_json(const std::vector<Resource> &resources, const std::string &file_name)
 {
     rapidjson::Document doc(rapidjson::kObjectType);
     auto &allocator = doc.GetAllocator();
@@ -276,8 +277,8 @@ void write_resources_to_json(const std::vector<Resource> &resources, const std::
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     doc.Accept(writer);
-    std::ofstream ofs(filename);
-    PPK_ASSERT_ERROR(ofs.is_open(), "file cannot be oppened");
+    std::ofstream ofs(file_name);
+    PPK_ASSERT_ERROR(ofs.is_open(), "Failed to open the file %s", file_name.c_str());
     ofs << buffer.GetString() << std::endl;
     ofs.close();
 }

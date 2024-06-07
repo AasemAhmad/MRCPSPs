@@ -31,7 +31,7 @@ void InstanceReader::read(ProblemInstance &problem_instance)
     for (rapidjson::SizeType i = 0; i < jobs_array.Size(); ++i)
     {
         auto job = std::make_shared<Job>();
-        job->j_id = jobs_array[i]["id"].GetString();
+        job->id = jobs_array[i]["id"].GetString();
 
         // Parse modes
         const rapidjson::Value &modes_array = jobs_array[i]["modes"];
@@ -54,13 +54,13 @@ void InstanceReader::read(ProblemInstance &problem_instance)
             job->modes.at(j).processing_time = processing_time_array[j].GetUint();
         }
 
-        const rapidjson::Value &sucessor_array = jobs_array[i]["succ"];
-        job->successors.reserve(sucessor_array.Size());
-        for (rapidjson::SizeType j = 0; j < sucessor_array.Size(); ++j)
+        const rapidjson::Value &successor_array = jobs_array[i]["succ"];
+        job->successors.reserve(successor_array.Size());
+        for (rapidjson::SizeType j = 0; j < successor_array.Size(); ++j)
         {
-            job->successors.emplace_back(sucessor_array[j].GetString());
+            job->successors.emplace_back(successor_array[j].GetString());
         }
-        problem_instance.job_queue.append_item(job);
+        problem_instance.job_queue.append_element(job);
     }
 
     problem_instance.set_makespan_upperbound();

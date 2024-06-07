@@ -22,6 +22,7 @@ class SolutionChecker
     bool check_resource_usage_over_time_period() const;
     bool check_resource_usage_over_intervals() const;
     bool check_resource_usage_at_given_time(std::vector<JobAllocation> &allocations, size_t time) const;
+    
     const ProblemInstance &problem_instance;
     const Solution &solution;
     mutable std::vector<std::string> mErrorMsg;

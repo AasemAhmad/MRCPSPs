@@ -6,7 +6,7 @@
 #include <cmath>
 #include <format>
 
-size_t calculate_processing_time_upper_bound(const std::shared_ptr<Job> &job)
+size_t calculate_processing_time_upper_bound(const JobConstPtr &job)
 {
     auto upper_bound_iterator = std::ranges::max_element(
         job->modes, [](const Mode &a, const Mode &b) { return a.processing_time < b.processing_time; });
@@ -48,13 +48,12 @@ void TimeIndexedModelVariableMapping::add_jobs_processing_time_variables()
     const std::source_location loc = std::source_location::current();
     size_t idx = get_nb_variables();
 
-    for (const auto &job : this->problem_instance.job_queue)
+    for (const JobConstPtr &job : this->problem_instance.job_queue)
     {
-        DecisionVariable var(DecisionVariableType::INT, 0,
-                             static_cast<double>(calculate_processing_time_upper_bound(job)));
-        variables.push_back(var);
-        var_desc.emplace_back(std::format("p_{}", job->j_id));
-        set_value(p, job->j_id, idx, loc);
+        variables.emplace_back(DecisionVariableType::INT, 0,
+                               static_cast<double>(calculate_processing_time_upper_bound(job)));
+        var_desc.emplace_back(std::format("p_{}", job->id));
+        set_value(p, job->id, idx, loc);
         ++idx;
     }
 }
@@ -64,12 +63,12 @@ void TimeIndexedModelVariableMapping::add_jobs_start_time_variables()
     const std::source_location loc = std::source_location::current();
 
     size_t idx = get_nb_variables();
-    for (const auto &job : this->problem_instance.job_queue)
+    for (const JobConstPtr &job : this->problem_instance.job_queue)
     {
-        DecisionVariable var(DecisionVariableType::INT, 0, static_cast<double>(problem_instance.makespan_upper_bound));
-        variables.push_back(var);
-        var_desc.emplace_back(std::format("s_{}", job->j_id));
-        set_value(s, {job->j_id}, idx, loc);
+        variables.emplace_back(DecisionVariableType::INT, 0,
+                               static_cast<double>(problem_instance.makespan_upper_bound));
+        var_desc.emplace_back(std::format("s_{}", job->id));
+        set_value(s, {job->id}, idx, loc);
         ++idx;
     }
 }
@@ -80,7 +79,7 @@ void TimeIndexedModelVariableMapping::add_jobs_start_time_binary_variables()
 
     size_t idx = get_nb_variables();
 
-    for (const auto &job : this->problem_instance.job_queue)
+    for (const JobConstPtr &job : this->problem_instance.job_queue)
     {
         for (size_t t = 0; t < problem_instance.makespan_upper_bound; ++t)
         {
@@ -88,10 +87,10 @@ void TimeIndexedModelVariableMapping::add_jobs_start_time_binary_variables()
             for ([[maybe_unused]] const auto &_ : job->modes)
             {
                 PPK_ASSERT_ERROR(mode_id <= job->modes.size(), "Invalid value %ld", mode_id);
-                DecisionVariable var(DecisionVariableType::BIN, 0.0, 1.0);
-                variables.push_back(var);
-                var_desc.emplace_back(std::format("x_{{{}#{}#{}}}", job->j_id, mode_id, t));
-                set_value(x, {job->j_id, std::to_string(mode_id), std::to_string(t)}, idx, loc);
+
+                variables.emplace_back(DecisionVariableType::BIN, 0.0, 1.0);
+                var_desc.emplace_back(std::format("x_{{{}#{}#{}}}", job->id, mode_id, t));
+                set_value(x, {job->id, std::to_string(mode_id), std::to_string(t)}, idx, loc);
                 ++idx;
                 ++mode_id;
             }
@@ -112,6 +111,7 @@ TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solut
     TimeIndexedModelVariableMapping::map1to1 my_map;
     for (const auto &[key, value] : mapping)
     {
+        PPK_ASSERT_ERROR(value < solution.size(), "Invalid index");
         set_value(my_map, key, solution[value], loc);
     }
     return my_map;
@@ -125,6 +125,7 @@ TimeIndexedModelVariableMapping::map2to1 lookup(const std::vector<double> &solut
     TimeIndexedModelVariableMapping::map2to1 my_map;
     for (const auto &[key, value] : mapping)
     {
+        PPK_ASSERT_ERROR(value < solution.size(), "Invalid index");
         set_value(my_map, {std::get<0>(key), std::get<1>(key)}, solution[value], loc);
     }
     return my_map;
@@ -138,6 +139,8 @@ TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solut
     TimeIndexedModelVariableMapping::map1to1 my_map;
     for (const auto &[key, value] : mapping)
     {
+        PPK_ASSERT_ERROR(value < solution.size(), "Invalid index");
+        
         if (solution[value] > 0)
         {
             set_value(my_map, std::get<0>(key), std::stoi(std::get<1>(key)), loc);

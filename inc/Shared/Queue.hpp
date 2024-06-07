@@ -21,8 +21,10 @@ template <typename SortableElement> class Queue
     SortableElementConstIterator end() const;
     SortableElementConstIterator cbegin() const;
     SortableElementConstIterator cend() const;
-    void append_item(std::shared_ptr<SortableElement> element);
-    template <typename ElementIDType> std::shared_ptr<SortableElement> find_item(const ElementIDType &id) const;
+    using SearchResult = std::pair<SortableElementConstIterator, bool>;
+    void append_element(const std::shared_ptr<SortableElement> &element);
+    template <typename ElementIDType> SearchResult element_exists(const ElementIDType &id) const;
+    template <typename ElementIDType> std::shared_ptr<const SortableElement> get_element(const ElementIDType &id) const;
     template <typename CompareFunc> void sort_queue(CompareFunc compareFunc);
     bool is_empty() const;
     size_t nb_items() const;
@@ -63,21 +65,28 @@ template <typename SortableElement> auto Queue<SortableElement>::cend() const ->
     return elements.cend();
 }
 
-template <typename SortableElement> void Queue<SortableElement>::append_item(std::shared_ptr<SortableElement> element)
+template <typename SortableElement>
+void Queue<SortableElement>::append_element(const std::shared_ptr<SortableElement> &element)
 {
-    elements.push_back(element);
+    const auto &[iterator, exists] = this->element_exists(element->id);
+    PPK_ASSERT_ERROR(!exists, "element already exists");
+    elements.emplace_back(element);
 }
 
 template <typename SortableElement>
 template <typename ElementIDType>
-std::shared_ptr<SortableElement> Queue<SortableElement>::find_item(const ElementIDType &id) const
+Queue<SortableElement>::SearchResult Queue<SortableElement>::element_exists(const ElementIDType &id) const
 {
-    if (auto it = std::ranges::find_if(elements, [&id](const auto &element) { return element->j_id == id; });
-        it != elements.end())
-    {
-        return *it;
-    }
-    return nullptr;
+    const auto &it = std::ranges::find_if(elements, [&id](const auto &element) { return element->id == id; });
+    return (it != elements.end()) ? std::make_pair(it, true) : std::make_pair(elements.cend(), false);
+}
+
+template <typename SortableElement>
+template <typename ElementIDType>
+std::shared_ptr<const SortableElement> Queue<SortableElement>::get_element(const ElementIDType &id) const
+{
+    const auto &[it, exists] = this->element_exists(id);
+    return exists ? *it : nullptr;
 }
 
 template <typename SortableElement>

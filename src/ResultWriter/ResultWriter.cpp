@@ -1,8 +1,6 @@
 #include "ResultWriter/ResultWriter.hpp"
 #include "External/pempek_assert.hpp"
 #include "loguru.hpp"
-#include <cstdint>
-#include <format>
 
 ResultWriter::ResultWriter(const std::string &file_name, const std::vector<std::string> &header)
 {
@@ -57,6 +55,7 @@ bool ResultWriter::sheet_exists(const std::string &sheet_name) const { return do
 
 void ResultWriter::clear_cell_contents(const std::string &sheet_name) const
 {
+    PPK_ASSERT_ERROR(sheet_exists(sheet_name), "sheet %s does not exist", sheet_name.c_str());
     auto sheet = doc.workbook().worksheet(sheet_name);
     sheet.range().clear();
 }

@@ -38,36 +38,39 @@ typename Container::mapped_type get_value(const Container &container, const type
 }
 
 template <class Container, class T>
-void set_value_helper(Container &container, const typename Container::key_type &key, const T &value,
-                      const std::source_location &loc)
+void set_value_helper(Container &container, const typename Container::key_type &key, const T &value, const std::source_location &loc)
 {
     auto [iterator, emplaced] = container.try_emplace(key, value);
-    PPK_ASSERT_ERROR(emplaced, "Value with the given key was found, function %s!",
-                     source_location_to_string(loc).c_str());
+    PPK_ASSERT_ERROR(emplaced, "Value with the given key was found, function %s!", source_location_to_string(loc).c_str());
 }
 
 template <class Container, class T = typename Container::mapped_type>
     requires(!std::is_pointer_v<T>)
-void set_value(Container &container, const typename Container::key_type &key, const T &value,
-               const std::source_location &loc)
+void set_value(Container &container, const typename Container::key_type &key, const T &value, const std::source_location &loc)
 {
     set_value_helper(container, key, value, loc);
 }
 
 template <class Container, class T = typename Container::mapped_type>
     requires(std::is_pointer_v<T>)
-void set_value(Container &container, const typename Container::key_type &key, const T &value,
-               const std::source_location &loc)
+void set_value(Container &container, const typename Container::key_type &key, const T &value, const std::source_location &loc)
 {
-    PPK_ASSERT_ERROR(value != nullptr, "nullptr value is not allowed, function %s",
-                     source_location_to_string(loc).c_str());
+    PPK_ASSERT_ERROR(value != nullptr, "nullptr value is not allowed, function %s", source_location_to_string(loc).c_str());
     set_value_helper(container, key, value, loc);
 }
 
-template <typename Container, typename T, typename Field>
-Container sort_by_field(const Container &input, Field T::*field_ptr)
+template <typename Container, typename T, typename Field> Container sort_by_field(const Container &input, Field T::*field_ptr)
 {
     Container sorted = input;
     std::ranges::sort(sorted, [&](const T &a, const T &b) { return a.*field_ptr < b.*field_ptr; });
     return sorted;
 }
+
+struct StringHash
+{
+    using is_transparent = void;
+
+    std::size_t operator()(const std::string &key) const noexcept { return std::hash<std::string>{}(key); }
+
+    std::size_t operator()(const char *key) const noexcept { return std::hash<std::string>{}(key); }
+};

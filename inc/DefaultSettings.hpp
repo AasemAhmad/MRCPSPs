@@ -2,7 +2,7 @@
 
 namespace Settings
 {
-    // clang-format off
+// clang-format off
     #define DEFAULT_INSTANCES_DIRECTORY_PATH "../../Instances/Set10/"
     #define DEFAULT_GENERATE_INSTANCES       true
     #define DEFAULT_FIRST_INSTANCE_INDEX     0

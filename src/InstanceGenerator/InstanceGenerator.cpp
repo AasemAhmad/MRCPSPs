@@ -10,7 +10,7 @@
 
 void InstanceGenerator::generate()
 {
-    PPK_ASSERT_ERROR(this->out_file.is_open(), "File cannot be oppend");
+    PPK_ASSERT_ERROR(this->out_file.is_open(), "Failed to open the file");
     generated_data_to_json_file();
 }
 
@@ -19,7 +19,7 @@ void InstanceGenerator::generated_data_to_json_file()
     rapidjson::Document document;
     document.SetObject();
 
-    InstanceGenerator::Dependecies dependencies = this->generate_dependencies();
+    InstanceGenerator::Dependencies dependencies = this->generate_dependencies();
 
     InstanceGenerator::ResourceUnits resources_data = this->generate_resource_units();
     rapidjson::Value resources(rapidjson::kArrayType);
@@ -62,7 +62,7 @@ void InstanceGenerator::generated_data_to_json_file()
 
         ProcessingTimes processing_time = generate_processing_times(job_modes);
         rapidjson::Value processing_time_value(rapidjson::kArrayType);
-        for (int val : processing_time)
+        for (size_t val : processing_time)
         {
             processing_time_value.PushBack(val, document.GetAllocator());
         }
@@ -77,7 +77,7 @@ void InstanceGenerator::generated_data_to_json_file()
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     document.Accept(writer);
 
-    PPK_ASSERT_ERROR(out_file.is_open(), "file cannot be oppened");
+    PPK_ASSERT_ERROR(out_file.is_open(), "Failed to open the file");
     out_file << buffer.GetString() << std::endl;
     out_file.close();
 
@@ -97,9 +97,9 @@ InstanceGenerator::ResourceUnits InstanceGenerator::generate_resource_units() co
     return resource_units;
 }
 
-InstanceGenerator::Dependecies InstanceGenerator::generate_dependencies() const
+InstanceGenerator::Dependencies InstanceGenerator::generate_dependencies() const
 {
-    InstanceGenerator::Dependecies dependencies;
+    InstanceGenerator::Dependencies dependencies;
     size_t nb_nodes = Settings::Generator::NB_JOBS;
 
     PPK_ASSERT_ERROR(nb_nodes > 1, "number of jobs must be strictly positive");
@@ -107,7 +107,7 @@ InstanceGenerator::Dependecies InstanceGenerator::generate_dependencies() const
     size_t dummy = 0;
     size_t node_index = 0;
     std::queue<size_t> q;
-    q.push(dummy);
+    q.emplace(dummy);
 
     size_t nb_created_nodes = 1;
 
@@ -124,8 +124,8 @@ InstanceGenerator::Dependecies InstanceGenerator::generate_dependencies() const
         for (int i = 0; i < nb_child_nodes; ++i)
         {
             ++node_index;
-            dependencies[current].push_back(node_index);
-            q.push(node_index);
+            dependencies[current].emplace_back(node_index);
+            q.emplace(node_index);
             ++nb_created_nodes;
         }
     }

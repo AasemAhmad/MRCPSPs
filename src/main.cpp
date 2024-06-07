@@ -5,6 +5,7 @@
 #include "InstanceReader/InstanceReader.hpp"
 #include "ProblemInstance/ProblemInstance.hpp"
 #include "Settings.hpp"
+#include "Shared/Utils.hpp"
 #include "Solution/SolutionChecker.hpp"
 #include <Shared/Utils.hpp>
 #include <filesystem>
@@ -13,29 +14,27 @@
 #include <loguru.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
-#include <set>
+#include <unordered_set>
 #include <vector>
 
-static int g_argc;
-static char **g_argv;
-
-static const std::set<std::string, std::less<>> program_tasks_set = {"solver", "generator"};
-static const std::set<std::string, std::less<>> verbosity_levels_set = {"debug", "info", "quiet", "silent"};
+static const std::unordered_set<std::string, StringHash, std::equal_to<>> program_tasks_set = {"solver", "generator"};
+static const std::unordered_set<std::string, StringHash, std::equal_to<>> verbosity_levels_set = {"debug", "info",
+                                                                                                  "quiet", "silent"};
 
 static void parse_command_line(std::string &program_task, std::string &program_task_conf, std::string &verbosity_level,
-                               std::string &program_task_conf_path)
+                               int argc, char **argv)
 
 {
-
-    cxxopts::Options options("MultiReourceProjectScheduler",
-                             "Sheduling Algorithms for Multiple Resource-Constrainted Project");
+    cxxopts::Options options("MultiResourceProjectScheduler",
+                             "Scheduling Algorithms for Multiple Resource-Constrained Project");
     try
     {
-        options.add_options()("program_task", "Programm task", cxxopts::value<std::string>(program_task))(
-            "program_task_conf", "Programm task configuration", cxxopts::value<std::string>(program_task_conf))(
-            "verbosity", "Verbosity level", cxxopts::value<std::string>(verbosity_level));
+        options.add_options()("program_task", "Program task", cxxopts::value<std::string>(program_task));
+        options.add_options()("program_task_conf", "Program task configuration",
+                              cxxopts::value<std::string>(program_task_conf));
+        options.add_options()("verbosity", "Verbosity level", cxxopts::value<std::string>(verbosity_level));
 
-        auto result = options.parse(g_argc, g_argv);
+        auto result = options.parse(argc, argv);
 
         PPK_ASSERT_ERROR(program_tasks_set.find(program_task) != program_tasks_set.end(), "Invalid program task");
         PPK_ASSERT_ERROR(verbosity_levels_set.find(verbosity_level) != verbosity_levels_set.end(),
@@ -43,8 +42,12 @@ static void parse_command_line(std::string &program_task, std::string &program_t
         PPK_ASSERT_ERROR(program_task_conf.ends_with(".json"), "Invalid config file format");
 
         std::filesystem::path path = std::filesystem::current_path().parent_path().parent_path() / "conf";
-        program_task_conf_path = path.c_str() + std::string("/") + program_task_conf;
-        PPK_ASSERT_ERROR(std::filesystem::exists(program_task_conf_path), "Config file does not exist");
+        PPK_ASSERT_ERROR(std::filesystem::exists(path) && std::filesystem::is_directory(path),
+                         "Path does not exist or is not a directory");
+
+        program_task_conf = std::format("{}/{}", path.c_str(), program_task_conf);
+
+        PPK_ASSERT_ERROR(std::filesystem::exists(program_task_conf), "Config file does not exist");
     } catch (const cxxopts::exceptions::exception &e)
     {
         LOG_F(ERROR, "Error parsing options: %s", e.what());
@@ -109,11 +112,11 @@ static bool parse_generator_option_parameters(const std::string &generator_optio
     LOG_F(INFO, "min_execution_time =  %d", json_doc_generator_options["min_execution_time"].GetUint());
     Settings::Generator::MIN_EXECUTION_TIME = json_doc_generator_options["min_execution_time"].GetUint();
 
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_resouce_units_per_job"));
-    LOG_F(INFO, "max_nb_resouce_units_per_job =  %d",
-          json_doc_generator_options["max_nb_resouce_units_per_job"].GetUint());
+    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_resource_units_per_job"));
+    LOG_F(INFO, "max_nb_resource_units_per_job =  %d",
+          json_doc_generator_options["max_nb_resource_units_per_job"].GetUint());
     Settings::Generator::MAX_NB_RESOURCE_UNITS_PER_JOB =
-        json_doc_generator_options["max_nb_resouce_units_per_job"].GetUint();
+        json_doc_generator_options["max_nb_resource_units_per_job"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_nb_resource_units_per_job"));
     LOG_F(INFO, "min_nb_resource_units_per_job =  %d",
@@ -201,7 +204,7 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
     Settings::Solver::MAX_RUNTIME = json_doc_solver_options["max_runtime"].GetUint();
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("init_ilp_solution"));
-    LOG_F(INFO, "init_ilp_solution =  %s", json_doc_solver_options["init_ilp_solution"].GetBool() ? "ture" : "false");
+    LOG_F(INFO, "init_ilp_solution =  %s", json_doc_solver_options["init_ilp_solution"].GetBool() ? "true" : "false");
     Settings::Solver::INIT_ILP_SOLUTION = json_doc_solver_options["init_ilp_solution"].GetBool();
 
     PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("ilp_relative_gap"));
@@ -211,20 +214,23 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
     return true;
 }
 
-static void run_generator(const std::string &programm_task_options)
+static void run_generator(const std::string &program_task_options)
 {
-    // FIXME
-    std::filesystem::create_directory("../../Instances");
-
-    if (parse_generator_option_parameters(programm_task_options))
+    if (parse_generator_option_parameters(program_task_options))
     {
+        std::filesystem::path path = Settings::INSTANCES_DIRECTORY_PATH;
+
+        if (!std::filesystem::exists(path))
+        {
+            PPK_ASSERT_ERROR(std::filesystem::create_directories(path), "Failed to create directories %s",
+                             path.c_str());
+        }
 
         for (size_t index = Settings::FIRST_INSTANCE_INDEX; index <= Settings::LAST_INSTANCE_INDEX; ++index)
         {
-            std::filesystem::create_directory(Settings::INSTANCES_DIRECTORY_PATH);
-            std::string fileName = std::format("{}instance_{}.json", Settings::INSTANCES_DIRECTORY_PATH, index);
-            LOG_F(INFO, "file name = %s", fileName.c_str());
-            InstanceGenerator generator(fileName);
+            std::string file_name = std::format("{}instance_{}.json", Settings::INSTANCES_DIRECTORY_PATH, index);
+            LOG_F(INFO, "file name = %s", file_name.c_str());
+            InstanceGenerator generator(file_name);
             generator.generate();
         }
     }
@@ -233,7 +239,7 @@ static void run_generator(const std::string &programm_task_options)
 static bool run_solution_checker(const ProblemInstance &problem_instance, const Solution &solution)
 {
     SolutionChecker checker(problem_instance, solution);
-    PPK_ASSERT_ERROR(checker.check_solution(), "Solution Checker Faild");
+    PPK_ASSERT_ERROR(checker.check_solution(), "Solution Checker failed!");
     return true;
 }
 
@@ -246,17 +252,17 @@ static void write_results(const ProblemInstance &problem_instance, const std::st
     LOG_F(INFO, "solution file = %s", solution_file.c_str());
     write_results_to_excel_file(solution_file, statistic_file, short_instance_name, solution);
 
-    LOG_F(INFO, "%s", solution.get_solution_as_string().c_str());
     if (Settings::Solver::DRAW_GANTT_CHART)
     {
-        solution.inverse_allocated_resouce_units(problem_instance);
-        draw_gantt_chart_from_json(solution.job_allocations, problem_instance.resources);
+        solution.inverse_allocated_resource_units(problem_instance);
+        draw_gantt_chart_from_json(solution.job_allocations, problem_instance.get_resources());
     }
 }
 
-static void run_solver(const std::string &programm_task_options)
+static void run_solver(const std::string &program_task_options)
 {
-    parse_solver_option_parameters(programm_task_options);
+    parse_solver_option_parameters(program_task_options);
+
     std::filesystem::create_directories(Settings::Solver::RESULTS_DIRECTORY);
 
     for (size_t index = Settings::FIRST_INSTANCE_INDEX; index <= Settings::LAST_INSTANCE_INDEX; ++index)
@@ -265,7 +271,7 @@ static void run_solver(const std::string &programm_task_options)
 
         ProblemInstance problem_instance(std::format("{}{}", Settings::INSTANCES_DIRECTORY_PATH, short_instance_name));
 
-        InstanceReader reader(problem_instance.name);
+        InstanceReader reader(problem_instance.get_name());
         reader.read(problem_instance);
         PPK_ASSERT_ERROR(problem_instance.validate_problem_instance(), "Invalid problem instance");
         Solution solution;
@@ -294,11 +300,11 @@ static void run_solver(const std::string &programm_task_options)
     }
 }
 
-static void load_and_run(const std::string &program_task, const std::string &program_task_conf_path)
+static void load_and_run(const std::string &program_task, const std::string &program_task_conf)
 {
     try
     {
-        std::ifstream conf_file(program_task_conf_path);
+        std::ifstream conf_file(program_task_conf);
         PPK_ASSERT_ERROR(conf_file.is_open(), "Failed to open the config file");
         std::string content((std::istreambuf_iterator<char>(conf_file)), (std::istreambuf_iterator<char>()));
         conf_file.close();
@@ -323,11 +329,8 @@ int main(int argc, char *argv[])
     std::string program_task;
     std::string program_task_conf;
     std::string verbosity_level;
-    std::string program_task_conf_path;
-    g_argc = argc;
-    g_argv = argv;
-    parse_command_line(program_task, program_task_conf, verbosity_level, program_task_conf_path);
+    parse_command_line(program_task, program_task_conf, verbosity_level, argc, argv);
     set_logger_verbosity(verbosity_level);
-    load_and_run(program_task, program_task_conf_path);
+    load_and_run(program_task, program_task_conf);
     return 0;
 }
