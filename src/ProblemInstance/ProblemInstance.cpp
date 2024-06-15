@@ -1,6 +1,7 @@
 #include "ProblemInstance/ProblemInstance.hpp"
 #include "ProblemInstance/Job.hpp"
 #include "Shared/Utils.hpp"
+#include "loguru.hpp"
 #include <queue>
 #include <unordered_set>
 

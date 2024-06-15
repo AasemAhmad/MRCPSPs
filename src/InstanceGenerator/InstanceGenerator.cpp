@@ -102,7 +102,7 @@ InstanceGenerator::Dependencies InstanceGenerator::generate_dependencies() const
     InstanceGenerator::Dependencies dependencies;
     size_t nb_nodes = Settings::Generator::NB_JOBS;
 
-    PPK_ASSERT_ERROR(nb_nodes > 1, "number of jobs must be strictly positive");
+    PPK_ASSERT_ERROR(nb_nodes >= 1, "number of jobs must be strictly positive");
 
     size_t dummy = 0;
     size_t node_index = 0;
@@ -171,21 +171,22 @@ InstanceGenerator::generate_job_modes(const InstanceGenerator::ResourceUnits &re
     InstanceGenerator::JobModes job_modes;
     job_modes.reserve(nb_modes);
 
-    LOG_F(INFO, "MIN_NB_RESOURCE_UNITS_PER_JOB %ld", Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB);
-
     for (size_t i = 0; i < nb_modes;)
     {
         std::vector<size_t> mode(nb_resources);
         for (size_t j = 0; j < nb_resources; ++j)
         {
-            mode[j] = random_range(Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB, resource_units[j]);
+            size_t max_nb_units = std::min(resource_units[j], Settings::Generator::MAX_NB_RESOURCE_UNITS_PER_JOB);
+            PPK_ASSERT_ERROR(max_nb_units >= Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB,
+                             "Invalid Config Parameter");
+            mode[j] = random_range(Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB, max_nb_units);
         }
 
         if (const bool no_resource_units_requested = std::ranges::all_of(mode, [](size_t value) { return value == 0; }))
         {
             continue;
         }
-        job_modes.push_back(std::move(mode));
+        job_modes.emplace_back(std::move(mode));
         ++i;
     }
 

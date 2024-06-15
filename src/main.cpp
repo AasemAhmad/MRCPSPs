@@ -264,6 +264,7 @@ static void run_solver(const std::string &program_task_options)
     parse_solver_option_parameters(program_task_options);
 
     std::filesystem::create_directories(Settings::Solver::RESULTS_DIRECTORY);
+    LOG_F(INFO, "%ld .... %ld", Settings::FIRST_INSTANCE_INDEX, Settings::LAST_INSTANCE_INDEX);
 
     for (size_t index = Settings::FIRST_INSTANCE_INDEX; index <= Settings::LAST_INSTANCE_INDEX; ++index)
     {
@@ -296,6 +297,10 @@ static void run_solver(const std::string &program_task_options)
                 PPK_ASSERT_ERROR(run_solution_checker(problem_instance, solution), "Wrong Solution");
             }
             write_results(problem_instance, short_instance_name, solution);
+        } else
+        {
+            LOG_F(INFO, "no solution");
+            exit(1);
         }
     }
 }

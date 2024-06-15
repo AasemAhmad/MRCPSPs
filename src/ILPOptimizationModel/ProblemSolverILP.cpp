@@ -19,7 +19,7 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     std::unique_ptr<Solver> solver = nullptr;
     PPK_ASSERT_ERROR(Settings::Solver::USE_GUROBI || Settings::Solver::USE_CPLEX, "Solver was not selected");
 
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+  
     if (Settings::Solver::USE_GUROBI)
     {
         solver = std::make_unique<GurobiSolver>();
@@ -30,6 +30,8 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     }
 
     PPK_ASSERT_ERROR(solver, "Failed to create solver");
+
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
     solution_ilp = solver->solve_ilp(init_solution, ilp_model, Settings::Solver::VERBOSE, rel_gap, time_limit,
                                      Settings::Solver::NB_THREADS, 0);

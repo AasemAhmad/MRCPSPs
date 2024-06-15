@@ -7,7 +7,9 @@
 #include "External/pempek_assert.hpp"
 #include "Settings.hpp"
 #include "gurobi_c++.h"
+#include "loguru.hpp"
 #include <format>
+#include <tuple>
 
 void init_variables(const Solution &init_solution, std::vector<GRBVar> &vars);
 
@@ -71,7 +73,6 @@ std::vector<GRBVar> generate_problem_gurobi(const Solution &init_solution, const
     grb_model.update();
 
     var_index = 0;
-
     for (const auto &var_op : ilp_model.vector_op)
     {
         GRBLinExpr expr;
@@ -82,7 +83,7 @@ std::vector<GRBVar> generate_problem_gurobi(const Solution &init_solution, const
         }
 
         double b_value = ilp_model.vector_b[var_index];
-        std::string desc = ilp_model.varDesc[var_index];
+        std::string desc = ilp_model.conDesc[var_index];
 
         switch (var_op)
         {
@@ -176,6 +177,7 @@ SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverMode
         }
 
         GRBModel grb_model(threadEnv[thread_id]);
+
         const std::vector<GRBVar> &vars = generate_problem_gurobi(init_solution, ilp_model, grb_model);
 
         grb_model.optimize();
@@ -235,6 +237,7 @@ SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverMode
         // FIXME
     } catch (...)
     {
+
         // FIXME
     }
 

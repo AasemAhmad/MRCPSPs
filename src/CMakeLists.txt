@@ -1,4 +1,3 @@
-
 find_package(loguru REQUIRED)
 include_directories(${LOGURU_INCLUDE_DIR})
 
