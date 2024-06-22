@@ -1,3 +1,3 @@
-Toy project developed in C++20 for solving Multiple Resource Project Scheduling Problem.
-It is currently under development.
+Toy project developed in C++20 for solving Multi-Mode Resource Constrained Project Scheduling Problems.
+This project is currently under development.
 
