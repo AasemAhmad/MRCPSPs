@@ -1,4 +1,3 @@
-add_subdirectory(Cplex)
 add_subdirectory(Gurobi)
 add_subdirectory(ILPSolverModel)
 add_subdirectory(OpenXLSX)

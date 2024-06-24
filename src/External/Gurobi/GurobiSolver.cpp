@@ -6,9 +6,11 @@
 #include "External/ILPSolverModel/ILPSolverInterface.hpp"
 #include "External/pempek_assert.hpp"
 #include "Settings.hpp"
+#include "Shared/Exceptions.hpp"
 #include "gurobi_c++.h"
 #include "loguru.hpp"
 #include <format>
+#include <source_location>
 #include <tuple>
 
 void init_variables(const Solution &init_solution, std::vector<GRBVar> &vars);
@@ -72,18 +74,18 @@ std::vector<GRBVar> generate_problem_gurobi(const Solution &init_solution, const
 
     grb_model.update();
 
-    var_index = 0;
+    size_t cons_index = 0;
     for (const auto &var_op : ilp_model.vector_op)
     {
         GRBLinExpr expr;
 
-        for (const auto &[index, value] : ilp_model.matrix_A[var_index])
+        for (const auto &[index, value] : ilp_model.matrix_A[cons_index])
         {
             expr += value * vars[index];
         }
 
-        double b_value = ilp_model.vector_b[var_index];
-        std::string desc = ilp_model.conDesc[var_index];
+        double b_value = ilp_model.vector_b[cons_index];
+        std::string desc = ilp_model.conDesc[cons_index];
 
         switch (var_op)
         {
@@ -97,7 +99,7 @@ std::vector<GRBVar> generate_problem_gurobi(const Solution &init_solution, const
         case GREATER_EQUAL:
             grb_model.addConstr(expr >= b_value, desc);
         }
-        ++var_index;
+        ++cons_index;
     }
 
     // TODO enable initilization of solution in case
@@ -132,7 +134,7 @@ void GurobiSolver::initialize_local_environments(size_t nb_of_threads) const
         threadEnv.resize(nb_of_threads);
     } catch (GRBException &e)
     {
-        // FIXME
+        throw CustomException(std::source_location::current(), e.getMessage());
     }
 }
 
@@ -152,7 +154,8 @@ SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverMode
         PPK_ASSERT_ERROR(thread_id >= 0, "thread_id has negative value");
 
         PPK_ASSERT_ERROR((threadEnv.size() > static_cast<size_t>(thread_id)),
-                         "Either the Gurobi environments were not initialized or the number of concurrent threads "
+                         "Either the Gurobi environments were not initialized or the number of "
+                         "concurrent threads "
                          "specified incorrectly in the initialize_local_environments method!");
 
         threadEnv[thread_id].set(GRB_IntParam_Threads, static_cast<int>(nb_of_threads));
@@ -234,11 +237,10 @@ SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverMode
 
     } catch (GRBException &e)
     {
-        // FIXME
+        throw CustomException(std::source_location::current(), e.getMessage());
     } catch (...)
     {
-
-        // FIXME
+        throw_with_nested(CustomException(std::source_location::current(), "Error during solving the ILP problem!"));
     }
 
     return solution_ilp;

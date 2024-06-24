@@ -34,8 +34,10 @@ bool SolutionChecker::check_job_selected_processing_time() const
         auto job = this->problem_instance.job_queue.get_element(job_id);
         PPK_ASSERT_ERROR(job != nullptr, "Job cannot be found");
         PPK_ASSERT_ERROR(mode_index < job->modes.size(), "Invalid Value %ld", mode_index);
-        PPK_ASSERT_ERROR(job->modes.at(mode_index).processing_time == job_allocation.duration,
-                         "selected processing time does not match with the selected mode");
+        PPK_ASSERT_ERROR(
+            job->modes.at(mode_index).processing_time == job_allocation.duration,
+            "job %s selected processing time %ld does not match with the selected mode, selected duration = %ld",
+            job->id.c_str(), job->modes.at(mode_index).processing_time, job_allocation.duration);
     }
     return true;
 }
@@ -72,9 +74,9 @@ bool SolutionChecker::check_resource_usage_at_given_time(std::vector<JobAllocati
 
 bool SolutionChecker::check_resource_usage_over_time_period() const
 {
-    PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_items(),
+    PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_elements(),
                      "at least one job is not allocated %ld, %ld", this->solution.job_allocations.size(),
-                     this->problem_instance.job_queue.nb_items());
+                     this->problem_instance.job_queue.nb_elements());
 
     std::vector<JobAllocation> allocations = sort_by_field(this->solution.job_allocations, &JobAllocation::start_time);
 
@@ -90,9 +92,9 @@ bool SolutionChecker::check_resource_usage_over_time_period() const
 
 bool SolutionChecker::check_resource_usage_over_intervals() const
 {
-    PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_items(),
+    PPK_ASSERT_ERROR(this->solution.job_allocations.size() == this->problem_instance.job_queue.nb_elements(),
                      "at least one job is not allocated %ld, %ld", this->solution.job_allocations.size(),
-                     this->problem_instance.job_queue.nb_items());
+                     this->problem_instance.job_queue.nb_elements());
 
     std::vector<JobAllocation> allocations = sort_by_field(this->solution.job_allocations, &JobAllocation::start_time);
 

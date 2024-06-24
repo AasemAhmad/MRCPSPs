@@ -27,7 +27,7 @@ template <typename SortableElement> class Queue
     template <typename ElementIDType> std::shared_ptr<const SortableElement> get_element(const ElementIDType &id) const;
     template <typename CompareFunc> void sort_queue(CompareFunc compareFunc);
     bool is_empty() const;
-    size_t nb_items() const;
+    size_t nb_elements() const;
 
   private:
     std::list<std::shared_ptr<SortableElement>> elements;
@@ -98,4 +98,4 @@ void Queue<SortableElement>::sort_queue(CompareFunc compareFunc)
 
 template <typename SortableElement> bool Queue<SortableElement>::is_empty() const { return elements.empty(); }
 
-template <typename SortableElement> size_t Queue<SortableElement>::nb_items() const { return elements.size(); }
+template <typename SortableElement> size_t Queue<SortableElement>::nb_elements() const { return elements.size(); }

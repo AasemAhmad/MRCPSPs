@@ -1,4 +1,4 @@
-#include "ILPOptimizationModel/VariableMappingBuilder.hpp"
+#include "Algorithms/ILPOptimizationModel/VariableMappingBuilder.hpp"
 #include "External/pempek_assert.hpp"
 #include "ProblemInstance/ProblemInstance.hpp"
 #include "Shared/Queue.hpp"
@@ -40,7 +40,6 @@ void TimeIndexedModelVariableMapping::add_objective_function_variables()
     variables.emplace_back(DecisionVariableType::INT, 0, problem_instance.makespan_upper_bound);
     var_desc.emplace_back(std::format("c_max_{}", idx));
     set_value(c_max, std::to_string(1), idx, loc);
-    ++idx;
 }
 
 void TimeIndexedModelVariableMapping::add_jobs_processing_time_variables()
@@ -68,7 +67,7 @@ void TimeIndexedModelVariableMapping::add_jobs_start_time_variables()
         variables.emplace_back(DecisionVariableType::INT, 0,
                                static_cast<double>(problem_instance.makespan_upper_bound));
         var_desc.emplace_back(std::format("s_{}", job->id));
-        set_value(s, {job->id}, idx, loc);
+        set_value(s, job->id, idx, loc);
         ++idx;
     }
 }
@@ -140,7 +139,7 @@ TimeIndexedModelVariableMapping::map1to1 lookup(const std::vector<double> &solut
     for (const auto &[key, value] : mapping)
     {
         PPK_ASSERT_ERROR(value < solution.size(), "Invalid index");
-        
+
         if (solution[value] > 0)
         {
             set_value(my_map, std::get<0>(key), std::stoi(std::get<1>(key)), loc);

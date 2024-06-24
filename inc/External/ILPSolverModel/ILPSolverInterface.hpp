@@ -37,11 +37,3 @@ struct GurobiSolver : public Solver
     SolutionILP solve_ilp(Solution &init_solution, const ILPSolverModel &ilp_model, bool verbose, double gap = 0.0,
                           double time_limit = 0.0, size_t nb_threads = 1, size_t thread_id = 0) const override;
 };
-
-struct CplexSolver : public Solver
-{
-    void initialize_local_environments(size_t nb_threads) const override;
-    std::string get_solver_identification() const override;
-    SolutionILP solve_ilp(Solution &init_solution, const ILPSolverModel &ilp_model, bool verbose, double gap = 0.0,
-                          double time_limit = 0.0, size_t nb_threads = 1, size_t thread_id = 0) const override;
-};

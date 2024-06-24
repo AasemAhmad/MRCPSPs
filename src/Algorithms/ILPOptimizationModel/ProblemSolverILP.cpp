@@ -1,6 +1,8 @@
-#include "ILPOptimizationModel/ProblemSolverILP.hpp"
+#include "Algorithms/ILPOptimizationModel/ProblemSolverILP.hpp"
 #include "External/ILPSolverModel/ILPSolverInterface.hpp"
 #include "Settings.hpp"
+#include "Shared/Exceptions.hpp"
+#include "loguru.hpp"
 #include <chrono>
 #include <cmath>
 #include <memory>
@@ -17,19 +19,11 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     Solution solution;
     SolutionILP solution_ilp;
     std::unique_ptr<Solver> solver = nullptr;
-    PPK_ASSERT_ERROR(Settings::Solver::USE_GUROBI || Settings::Solver::USE_CPLEX, "Solver was not selected");
+    PPK_ASSERT_ERROR(Settings::Solver::USE_GUROBI, "Solver was not selected");
 
-  
-    if (Settings::Solver::USE_GUROBI)
-    {
-        solver = std::make_unique<GurobiSolver>();
-        solver->initialize_local_environments(1u);
-    } else if (Settings::Solver::USE_CPLEX)
-    {
-        solver = std::make_unique<CplexSolver>();
-    }
-
+    solver = std::make_unique<GurobiSolver>();
     PPK_ASSERT_ERROR(solver, "Failed to create solver");
+    solver->initialize_local_environments(1u);
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
@@ -46,28 +40,26 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
         try
         {
             solution.makespan = static_cast<size_t>(std::round(solution_ilp.criterion));
-            auto job_durations = lookup(solution_ilp.solution, variable_mapping_ilp.p);
             auto job_start_times = lookup(solution_ilp.solution, variable_mapping_ilp.s);
+            auto job_durations = lookup(solution_ilp.solution, variable_mapping_ilp.p);
             auto job_modes = lookup(solution_ilp.solution, variable_mapping_ilp.x);
 
-            for (const auto &[key, value] : job_start_times)
+            for (const auto &[job_id, start_time] : job_start_times)
             {
                 JobAllocation job_allocation;
-                std::string job_id = key;
                 job_allocation.job_id = job_id;
-                job_allocation.start_time = job_start_times.at(job_id);
-                job_allocation.duration = job_durations.at(job_id);
-                job_allocation.mode_id = job_modes.at(job_id);
+                job_allocation.start_time = start_time;
+                job_allocation.duration = job_durations[job_id];
+                job_allocation.mode_id = job_modes[job_id];
 
                 solution.job_allocations.emplace_back(std::move(job_allocation));
             }
         } catch (...)
         {
-            // TODO
-            // PPK_ASSERT_ERROR
+            throw_with_nested(CustomException(std::source_location::current(),
+                                              "Error while mapping ILP solution to job allocation, check the model"));
         }
-    } else if (solution_ilp.status != MODEL_STATUS::MODEL_SOL_UNKNOWN)
-    {}
+    }
     return solution;
 }
 

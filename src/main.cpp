@@ -1,6 +1,7 @@
+#include "Algorithms/CPSolver/CPSolver.hpp"
+#include "Algorithms/ILPOptimizationModel/ProblemSolverILP.hpp"
 #include "External/ILPSolverModel/ILPSolverInterface.hpp"
 #include "External/cxxopts.hpp"
-#include "ILPOptimizationModel/ProblemSolverILP.hpp"
 #include "InstanceGenerator/InstanceGenerator.hpp"
 #include "InstanceReader/InstanceReader.hpp"
 #include "ProblemInstance/ProblemInstance.hpp"
@@ -166,19 +167,12 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
     LOG_F(INFO, "nb_of_thread =  %d", json_doc_solver_options["nb_of_thread"].GetUint());
     Settings::Solver::NB_THREADS = json_doc_solver_options["nb_of_thread"].GetUint();
 
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("use_gurobi") ||
-                     json_doc_solver_options.HasMember("use_cplex") || json_doc_solver_options.HasMember("use_cp"));
+    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("use_gurobi") || json_doc_solver_options.HasMember("use_cp"));
 
     if (json_doc_solver_options.HasMember("use_gurobi"))
     {
         LOG_F(INFO, "use_gurobi =  %s", json_doc_solver_options["use_gurobi"].GetBool() ? "true" : "false");
         Settings::Solver::USE_GUROBI = json_doc_solver_options["use_gurobi"].GetBool();
-    }
-
-    if (json_doc_solver_options.HasMember("use_cplex"))
-    {
-        LOG_F(INFO, "use_cplex =  %s", json_doc_solver_options["use_cplex"].GetBool() ? "true" : "false");
-        Settings::Solver::USE_CPLEX = json_doc_solver_options["use_cplex"].GetBool();
     }
 
     if (json_doc_solver_options.HasMember("use_cp"))
@@ -249,7 +243,6 @@ static void write_results(const ProblemInstance &problem_instance, const std::st
     std::string solution_file = std::format("{}instances_solution.xlsx", Settings::Solver::RESULTS_DIRECTORY);
     std::string statistic_file = std::format("{}statistics.xlsx", Settings::Solver::RESULTS_DIRECTORY);
 
-    LOG_F(INFO, "solution file = %s", solution_file.c_str());
     write_results_to_excel_file(solution_file, statistic_file, short_instance_name, solution);
 
     if (Settings::Solver::DRAW_GANTT_CHART)
@@ -264,7 +257,6 @@ static void run_solver(const std::string &program_task_options)
     parse_solver_option_parameters(program_task_options);
 
     std::filesystem::create_directories(Settings::Solver::RESULTS_DIRECTORY);
-    LOG_F(INFO, "%ld .... %ld", Settings::FIRST_INSTANCE_INDEX, Settings::LAST_INSTANCE_INDEX);
 
     for (size_t index = Settings::FIRST_INSTANCE_INDEX; index <= Settings::LAST_INSTANCE_INDEX; ++index)
     {
@@ -276,7 +268,7 @@ static void run_solver(const std::string &program_task_options)
         reader.read(problem_instance);
         PPK_ASSERT_ERROR(problem_instance.validate_problem_instance(), "Invalid problem instance");
         Solution solution;
-        if (Settings::Solver::USE_GUROBI || Settings::Solver::USE_CPLEX)
+        if (Settings::Solver::USE_GUROBI)
         {
             Solution initSol;
             if (Settings::Solver::INIT_ILP_SOLUTION)
@@ -285,13 +277,17 @@ static void run_solver(const std::string &program_task_options)
             }
             ProblemSolverILP ilpSolver(problem_instance);
             solution = ilpSolver.solve(initSol);
+
         } else if (Settings::Solver::USE_CP)
         {
-            // TODO
+            CPSolver solver(problem_instance);
+            solution = solver.solve();
         }
 
         if (solution.solution_state == SolutionState::FEASIBLE || solution.solution_state == SolutionState::OPTIMAL)
         {
+            LOG_F(INFO, "solution = %s", solution.get_solution_as_string().c_str());
+
             if (Settings::Solver::CHECK_SOLUTION)
             {
                 PPK_ASSERT_ERROR(run_solution_checker(problem_instance, solution), "Wrong Solution");

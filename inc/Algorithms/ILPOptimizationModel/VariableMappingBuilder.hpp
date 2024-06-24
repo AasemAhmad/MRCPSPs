@@ -2,6 +2,7 @@
 
 #include "External/ILPSolverModel/ILPSolverModel.hpp"
 #include "ProblemInstance/ProblemInstance.hpp"
+#include "Shared/Utils.hpp"
 #include <map>
 
 class TimeIndexedModelVariableMapping
@@ -13,7 +14,7 @@ class TimeIndexedModelVariableMapping
 
     size_t get_nb_variables() const;
 
-    using map1to1 = std::map<std::string, size_t, std::less<>>;
+    using map1to1 = std::map<std::string, size_t, NumericalStringComparator>;
     using map2to1 = std::map<std::tuple<std::string, std::string>, size_t>;
     using map3to1 = std::map<std::tuple<std::string, std::string, std::string>, size_t>;
 

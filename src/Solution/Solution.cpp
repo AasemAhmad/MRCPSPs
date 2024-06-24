@@ -119,9 +119,9 @@ std::vector<size_t> Solution::get_allocated_units_on_given_resource(
 
 void Solution::inverse_allocated_resource_units(const ProblemInstance &problem_instance)
 {
-    PPK_ASSERT_ERROR(this->job_allocations.size() == problem_instance.job_queue.nb_items(),
+    PPK_ASSERT_ERROR(this->job_allocations.size() == problem_instance.job_queue.nb_elements(),
                      "at least one job was not allocated %ld, %ld", this->job_allocations.size(),
-                     problem_instance.job_queue.nb_items());
+                     problem_instance.job_queue.nb_elements());
     this->job_allocations = sort_by_field(this->job_allocations, &JobAllocation::start_time);
 
     std::map<std::string, std::vector<size_t>, std::less<>> resource_availability;

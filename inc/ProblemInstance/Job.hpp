@@ -24,7 +24,7 @@ struct Mode
 struct Job
 {
     std::string id;
-    size_t release_time;
+    size_t release_time = 0;
     std::vector<Mode> modes;
     std::vector<std::string> successors;
 };

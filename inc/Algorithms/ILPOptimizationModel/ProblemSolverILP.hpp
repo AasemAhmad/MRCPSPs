@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Algorithms/ILPOptimizationModel/ConstraintModelBuilder.hpp"
+#include "Algorithms/ILPOptimizationModel/VariableMappingBuilder.hpp"
 #include "External/ILPSolverModel/ILPSolverModel.hpp"
-#include "ILPOptimizationModel/ConstraintModelBuilder.hpp"
-#include "ILPOptimizationModel/VariableMappingBuilder.hpp"
 #include "Settings.hpp"
 #include "Solution/Solution.hpp"
 

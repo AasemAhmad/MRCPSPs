@@ -35,4 +35,5 @@ class ProblemInstance
     friend class ConstraintModelBuilder;
     friend class VariableModelBuilder;
     friend class TimeIndexedModelVariableMapping;
+    friend class CPSolver;
 };

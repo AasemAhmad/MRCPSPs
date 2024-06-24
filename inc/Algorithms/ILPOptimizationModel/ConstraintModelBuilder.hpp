@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Algorithms/ILPOptimizationModel/VariableMappingBuilder.hpp"
 #include "External/ILPSolverModel/ILPSolverModel.hpp"
-#include "ILPOptimizationModel/VariableMappingBuilder.hpp"
 #include "ProblemInstance/ProblemInstance.hpp"
 #include <utility>
 #include <vector>

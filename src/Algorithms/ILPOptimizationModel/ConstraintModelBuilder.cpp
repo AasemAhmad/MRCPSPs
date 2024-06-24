@@ -1,4 +1,4 @@
-#include "ILPOptimizationModel/ConstraintModelBuilder.hpp"
+#include "Algorithms/ILPOptimizationModel/ConstraintModelBuilder.hpp"
 #include "Shared/Utils.hpp"
 #include <loguru.hpp>
 
@@ -140,6 +140,7 @@ void ConstraintModelBuilder::add_precedence_constraints(const TimeIndexedModelVa
 
 void ConstraintModelBuilder::add_renewable_resource_constraints(const TimeIndexedModelVariableMapping::map3to1 &x)
 {
+
     const std::source_location loc = std::source_location::current();
 
     LOG_F(INFO, "%s started", source_location_to_string(loc).c_str());
