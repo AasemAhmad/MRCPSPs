@@ -1,7 +1,7 @@
 {
   "first_instance_index": 1,
   "last_instance_index": 50,
-  "instances_directory_path": "../../Instances/Set30/",
+  "instances_directory_path": "../../Instances/Set25/",
   "instance_file_name": "instance",
   "results_directory": "../../Result/",
   "verbose": true,

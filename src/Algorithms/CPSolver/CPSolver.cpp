@@ -39,20 +39,22 @@ Solution CPSolver::solve()
         if (bool solved = solve_cp_model(cp, model, solution); solved)
         {
             set_solution(cp, solution);
-
         } else
         {
-            LOG_F(INFO, "Primary model is not solvable");
+            LOG_F(INFO, "CP Model is not solvable within the time limit of %g", Settings::Solver::MAX_RUNTIME);
         }
         cp.end();
 
     } catch (IloException &ex)
     {
+        env.end();
         throw CustomException(std::source_location::current(), ex.getMessage());
     } catch (...)
     {
+        env.end();
         throw_with_nested(CustomException(std::source_location::current(), "Error during solving the CP model!"));
     }
+
     env.end();
     return solution;
 }
@@ -72,10 +74,11 @@ void CPSolver::init_resource_arrays(IloModel &model)
 
 void CPSolver::add_job_start_time_constraints(IloModel &model)
 {
+    IloEnv env = model.getEnv();
+
     size_t job_index = 0;
     for (const JobConstPtr &job : problem_instance.job_queue)
     {
-        IloEnv env = model.getEnv();
         IloIntervalVar task(env);
         task.setStartMin(job->release_time);
         tasks[job_index] = task;
@@ -151,6 +154,7 @@ void CPSolver::add_capacity_constraints(IloModel &model)
 void CPSolver::add_objective(IloModel &model)
 {
     IloEnv env = model.getEnv();
+
     IloObjective objective = IloMinimize(env, IloMax(ends));
     model.add(objective);
 }
@@ -158,6 +162,7 @@ void CPSolver::add_objective(IloModel &model)
 bool CPSolver::solve_cp_model(IloCP &cp, IloModel &model, Solution &solution)
 {
     IloEnv env = model.getEnv();
+
     cp.setParameter(IloCP::TimeLimit, Settings::Solver::MAX_RUNTIME);
     cp.setParameter(IloCP::Workers, 1);
 
@@ -171,7 +176,6 @@ bool CPSolver::solve_cp_model(IloCP &cp, IloModel &model, Solution &solution)
     if (cp.solve())
     {
         solved = true;
-        solution.objective_bound = cp.getObjValue();
     }
     return solved;
 }
@@ -231,5 +235,6 @@ void CPSolver::set_solution_helper(IloCP &cp, Solution &solution)
         solution.job_allocations.emplace_back(std::move(job_allocation));
         ++job_index;
     }
+
     LOG_F(INFO, "Solution details updated successfully");
 }
