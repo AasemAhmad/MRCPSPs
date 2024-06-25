@@ -4,11 +4,8 @@
 #include "Shared/Exceptions.hpp"
 #include "Shared/Utils.hpp"
 #include "Solution/Solution.hpp"
-#include <intervalset.hpp>
-#include <loguru.hpp>
-#include <math.h>
+#include "loguru.hpp"
 #include <memory>
-#include <tuple>
 #include <vector>
 
 CPSolver::CPSolver(const ProblemInstance &problem_instance) : problem_instance(problem_instance) {}
@@ -19,7 +16,7 @@ Solution CPSolver::solve()
     IloEnv env;
     try
     {
-        model = IloModel(env);
+        IloModel model(env);
         tasks = IloIntervalVarArray(env, problem_instance.job_queue.nb_elements());
         modes = IloIntervalVarArray2(env, problem_instance.job_queue.nb_elements());
         ends = IloIntExprArray(env);
@@ -30,11 +27,24 @@ Solution CPSolver::solve()
         processes = IloCumulFunctionExprArray(env, nb_resources);
         capacities = IloIntArray(env, nb_resources);
 
-        initialize_resource_arrays();
-        init_task_and_mode_arrays();
-        add_capacity_constraints();
-        add_precedence_constraints();
-        add_objective_and_solve(solution);
+        init_resource_arrays(model);
+        add_job_start_time_constraints(model);
+        add_job_modes_constraints(model);
+        add_capacity_constraints(model);
+        add_precedence_constraints(model);
+        add_objective(model);
+
+        IloCP cp(model);
+
+        if (bool solved = solve_cp_model(cp, model, solution); solved)
+        {
+            set_solution(cp, solution);
+
+        } else
+        {
+            LOG_F(INFO, "Primary model is not solvable");
+        }
+        cp.end();
 
     } catch (IloException &ex)
     {
@@ -47,7 +57,7 @@ Solution CPSolver::solve()
     return solution;
 }
 
-void CPSolver::initialize_resource_arrays()
+void CPSolver::init_resource_arrays(IloModel &model)
 {
     IloEnv env = model.getEnv();
 
@@ -60,85 +70,77 @@ void CPSolver::initialize_resource_arrays()
     }
 }
 
-void CPSolver::init_task_and_mode_arrays()
+void CPSolver::add_job_start_time_constraints(IloModel &model)
 {
-    IloEnv env = model.getEnv();
-
     size_t job_index = 0;
-    for (const auto &job : problem_instance.job_queue)
+    for (const JobConstPtr &job : problem_instance.job_queue)
     {
-        IloIntervalVar task = add_job_start_time_constraints(job);
-
+        IloEnv env = model.getEnv();
+        IloIntervalVar task(env);
+        task.setStartMin(job->release_time);
         tasks[job_index] = task;
-
-        add_job_modes_constraints(job, job_index);
-
-        model.add(IloAlternative(env, task, modes[job_index]));
-        ends.add(IloEndOf(task));
-        starts.add(IloStartOf(task));
-
-        const auto &[it, emplaced] = id_index_map.try_emplace(job->id, job_index);
-        PPK_ASSERT_ERROR(emplaced, "key with the given id was already emplaced");
+        starts.add(IloStartOf(tasks[job_index]));
+        ends.add(IloEndOf(tasks[job_index]));
         ++job_index;
     }
 }
 
-IloIntervalVar CPSolver::add_job_start_time_constraints(const JobPtr &job) const
+void CPSolver::add_job_modes_constraints(IloModel &model)
 {
     IloEnv env = model.getEnv();
-    IloIntervalVar task(env);
-    task.setStartMin(job->release_time);
-    return task;
-}
 
-void CPSolver::add_job_modes_constraints(const JobPtr &job, size_t job_index)
-{
-    IloEnv env = model.getEnv();
-    modes[job_index] = IloIntervalVarArray(env);
-
-    IloIntervalVarArray job_modes(env);
-    for (const auto &mode : job->modes)
+    size_t job_index = 0;
+    for (const JobConstPtr &job : problem_instance.job_queue)
     {
-        IloInt proc_time = mode.processing_time;
-        IloIntervalVar alt(env, proc_time);
-        alt.setOptional();
-        modes[job_index].add(alt);
-    }
-    model.add(IloAlternative(env, tasks[job_index], modes[job_index]));
+        modes[job_index] = IloIntervalVarArray(env);
 
-    job_modes = modes[job_index];
-
-    size_t mode_index = 0;
-    for (const auto &mode : job->modes)
-    {
-        size_t res_index = 0;
-        for (const auto &resource : mode.requested_resources)
+        for (const auto &mode : job->modes)
         {
-            IloInt res_units = resource.units;
-            processes[res_index] += IloPulse(job_modes[mode_index], res_units);
-            ++res_index;
+            IloInt proc_time = mode.processing_time;
+            IloIntervalVar alt(env, proc_time);
+            alt.setOptional();
+            modes[job_index].add(alt);
         }
-        ++mode_index;
+
+        size_t mode_index = 0;
+        for (const auto &mode : job->modes)
+        {
+            size_t res_index = 0;
+            for (const auto &resource : mode.requested_resources)
+            {
+                IloInt res_units = resource.units;
+                processes[res_index] += IloPulse(modes[job_index][mode_index], res_units);
+                ++res_index;
+            }
+            ++mode_index;
+        }
+
+        model.add(IloAlternative(env, tasks[job_index], modes[job_index]));
+        ++job_index;
     }
 }
 
-void CPSolver::add_precedence_constraints()
+void CPSolver::add_precedence_constraints(IloModel &model)
 {
     IloEnv env = model.getEnv();
 
+    size_t job_index = 0;
     for (const JobConstPtr &job : this->problem_instance.job_queue)
     {
-        size_t job_index = id_index_map[job->id];
         for (const auto &succ : job->successors)
         {
-            size_t succ_idex = id_index_map.at(succ);
-
-            model.add(IloEndBeforeStart(env, tasks[job_index], tasks[succ_idex]));
+            const auto &succ_job = problem_instance.find_job(succ);
+            PPK_ASSERT_ERROR(succ_job, "successor job %s was not found", succ.c_str());
+            auto it = std::ranges::find(this->problem_instance.job_queue, succ_job);
+            PPK_ASSERT_ERROR(it != this->problem_instance.job_queue.end(), " Invalid Iterator");
+            size_t succ_index = std::distance(this->problem_instance.job_queue.begin(), it);
+            model.add(IloEndBeforeStart(env, tasks[job_index], tasks[succ_index]));
         }
+        ++job_index;
     }
 }
 
-void CPSolver::add_capacity_constraints()
+void CPSolver::add_capacity_constraints(IloModel &model)
 {
     for (size_t i = 0; i < processes.getSize(); ++i)
     {
@@ -146,13 +148,16 @@ void CPSolver::add_capacity_constraints()
     }
 }
 
-void CPSolver::add_objective_and_solve(Solution &solution)
+void CPSolver::add_objective(IloModel &model)
 {
     IloEnv env = model.getEnv();
     IloObjective objective = IloMinimize(env, IloMax(ends));
     model.add(objective);
+}
 
-    IloCP cp(model);
+bool CPSolver::solve_cp_model(IloCP &cp, IloModel &model, Solution &solution)
+{
+    IloEnv env = model.getEnv();
     cp.setParameter(IloCP::TimeLimit, Settings::Solver::MAX_RUNTIME);
     cp.setParameter(IloCP::Workers, 1);
 
@@ -162,15 +167,13 @@ void CPSolver::add_objective_and_solve(Solution &solution)
     cp.setWarning(env.getNullStream());
     cp.setError(env.getNullStream());
 
+    bool solved = false;
     if (cp.solve())
     {
-        LOG_F(INFO, "model is solved");
-        set_solution(cp, solution);
-    } else
-    {
-        LOG_F(INFO, "CP is not solvable");
+        solved = true;
+        solution.objective_bound = cp.getObjValue();
     }
-    cp.end();
+    return solved;
 }
 
 void CPSolver::set_solution(IloCP &cp, Solution &solution)
