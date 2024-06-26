@@ -172,12 +172,7 @@ bool CPSolver::solve_cp_model(IloCP &cp, IloModel &model, Solution &solution)
     cp.setWarning(env.getNullStream());
     cp.setError(env.getNullStream());
 
-    bool solved = false;
-    if (cp.solve())
-    {
-        solved = true;
-    }
-    return solved;
+    return cp.solve();
 }
 
 void CPSolver::set_solution(IloCP &cp, Solution &solution)

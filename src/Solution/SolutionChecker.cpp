@@ -8,8 +8,9 @@ bool SolutionChecker::check_solution() const
 {
     PPK_ASSERT_ERROR(this->check_objective(), "Objective value is incorrect");
     PPK_ASSERT_ERROR(this->check_job_selected_processing_time(), "Jobs processing times are not correctly selected");
-    PPK_ASSERT_ERROR(this->check_resource_usage_over_time_period(), "Capacity constraints are not correct");
-    PPK_ASSERT_ERROR(this->check_resource_usage_over_intervals(), "Capacity constraints are not correct");
+    PPK_ASSERT_ERROR(this->check_job_dependencies(), "dependency constraints are violated");
+    PPK_ASSERT_ERROR(this->check_resource_usage_over_time_period(), "Capacity constraints are violated");
+    PPK_ASSERT_ERROR(this->check_resource_usage_over_intervals(), "Capacity constraints are violated");
     return true;
 }
 
@@ -39,6 +40,32 @@ bool SolutionChecker::check_job_selected_processing_time() const
             "job %s selected processing time %ld does not match with the selected mode, selected duration = %ld",
             job->id.c_str(), job->modes.at(mode_index).processing_time, job_allocation.duration);
     }
+    return true;
+}
+
+bool SolutionChecker::check_job_dependencies() const
+{
+    for (const auto &job_allocation : this->solution.job_allocations)
+    {
+        std::string job_id = job_allocation.job_id;
+        auto job = this->problem_instance.job_queue.get_element(job_id);
+        PPK_ASSERT_ERROR(job != nullptr, "Job %s cannot be found", job_id.c_str());
+
+        for (const auto &succ : job->successors)
+        {
+            auto it = std::ranges::find_if(this->solution.job_allocations, [&succ](const JobAllocation &allocation) {
+                return allocation.job_id == succ;
+            });
+            PPK_ASSERT_ERROR(it != this->solution.job_allocations.end(), "Invalid Iterator");
+
+            size_t succ_start_time = it->start_time;
+
+            PPK_ASSERT_ERROR(job_allocation.start_time + job_allocation.duration <= succ_start_time,
+                             "precedence constraint %s ---> %s is invalid", job_allocation.job_id.c_str(),
+                             succ.c_str());
+        }
+    }
+
     return true;
 }
 

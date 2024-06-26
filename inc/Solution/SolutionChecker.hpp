@@ -19,6 +19,7 @@ class SolutionChecker
   private:
     bool check_objective() const;
     bool check_job_selected_processing_time() const;
+    bool check_job_dependencies() const;
     bool check_resource_usage_over_time_period() const;
     bool check_resource_usage_over_intervals() const;
     bool check_resource_usage_at_given_time(std::vector<JobAllocation> &allocations, size_t time) const;
