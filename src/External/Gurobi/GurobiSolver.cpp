@@ -146,7 +146,6 @@ void init_variables(const Solution &init_solution, std::vector<GRBVar> &vars)
 SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverModel &ilp_model, bool verbose, double gap,
                                     double time_limit, size_t nb_of_threads, size_t thread_id) const
 {
-
     SolutionILP solution_ilp;
 
     try
@@ -230,6 +229,7 @@ SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverMode
         if (grb_model.get(GRB_IntAttr_IsMIP))
         {
             solution_ilp.bound = grb_model.get(GRB_DoubleAttr_ObjBound);
+            solution_ilp.gap = grb_model.get(GRB_DoubleAttr_MIPGap);
         } else if (solution_ilp.status == MODEL_STATUS::MODEL_SOL_OPTIMAL)
         {
             solution_ilp.bound = solution_ilp.criterion;

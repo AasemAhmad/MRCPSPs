@@ -1,7 +1,7 @@
 {
   "first_instance_index": 1,
-  "last_instance_index": 50,
-  "instances_directory_path": "../../Instances/Set25/",
+  "last_instance_index": 10,
+  "instances_directory_path": "../../Instances/Set30/",
   "instance_file_name": "instance",
   "results_directory": "../../Result/",
   "verbose": true,
@@ -10,7 +10,7 @@
   "use_cp": true,
   "check_solution": true,
   "draw_gantt_chart": false,
-  "max_runtime": 15,
+  "max_runtime": 8,
   "init_ilp_solution": false,
   "ilp_relative_gap": 0
 }

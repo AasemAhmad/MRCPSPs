@@ -19,8 +19,8 @@ Solution CPSolver::solve()
         IloModel model(env);
         tasks = IloIntervalVarArray(env, problem_instance.job_queue.nb_elements());
         modes = IloIntervalVarArray2(env, problem_instance.job_queue.nb_elements());
-        ends = IloIntExprArray(env);
         starts = IloIntExprArray(env);
+        ends = IloIntExprArray(env);
 
         size_t nb_resources = problem_instance.resources.size();
 
@@ -36,7 +36,7 @@ Solution CPSolver::solve()
 
         IloCP cp(model);
 
-        if (bool solved = solve_cp_model(cp, model, solution); solved)
+        if (bool solved = solve_cp_model(cp, model); solved)
         {
             set_solution(cp, solution);
         } else
@@ -59,7 +59,7 @@ Solution CPSolver::solve()
     return solution;
 }
 
-void CPSolver::init_resource_arrays(IloModel &model)
+void CPSolver::init_resource_arrays(const IloModel &model)
 {
     IloEnv env = model.getEnv();
 
@@ -72,7 +72,7 @@ void CPSolver::init_resource_arrays(IloModel &model)
     }
 }
 
-void CPSolver::add_job_start_time_constraints(IloModel &model)
+void CPSolver::add_job_start_time_constraints(const IloModel &model)
 {
     IloEnv env = model.getEnv();
 
@@ -88,7 +88,7 @@ void CPSolver::add_job_start_time_constraints(IloModel &model)
     }
 }
 
-void CPSolver::add_job_modes_constraints(IloModel &model)
+void CPSolver::add_job_modes_constraints(const IloModel &model)
 {
     IloEnv env = model.getEnv();
 
@@ -101,21 +101,17 @@ void CPSolver::add_job_modes_constraints(IloModel &model)
         {
             IloInt proc_time = mode.processing_time;
             IloIntervalVar alt(env, proc_time);
-            alt.setOptional();
-            modes[job_index].add(alt);
-        }
 
-        size_t mode_index = 0;
-        for (const auto &mode : job->modes)
-        {
             size_t res_index = 0;
             for (const auto &resource : mode.requested_resources)
             {
                 IloInt res_units = resource.units;
-                processes[res_index] += IloPulse(modes[job_index][mode_index], res_units);
+                processes[res_index] += IloPulse(alt, res_units);
                 ++res_index;
             }
-            ++mode_index;
+            
+            alt.setOptional();
+            modes[job_index].add(alt);
         }
 
         model.add(IloAlternative(env, tasks[job_index], modes[job_index]));
@@ -123,7 +119,7 @@ void CPSolver::add_job_modes_constraints(IloModel &model)
     }
 }
 
-void CPSolver::add_precedence_constraints(IloModel &model)
+void CPSolver::add_precedence_constraints(const IloModel &model) const
 {
     IloEnv env = model.getEnv();
 
@@ -143,7 +139,7 @@ void CPSolver::add_precedence_constraints(IloModel &model)
     }
 }
 
-void CPSolver::add_capacity_constraints(IloModel &model)
+void CPSolver::add_capacity_constraints(const IloModel &model) const
 {
     for (size_t i = 0; i < processes.getSize(); ++i)
     {
@@ -151,7 +147,7 @@ void CPSolver::add_capacity_constraints(IloModel &model)
     }
 }
 
-void CPSolver::add_objective(IloModel &model)
+void CPSolver::add_objective(const IloModel &model) const
 {
     IloEnv env = model.getEnv();
 
@@ -159,7 +155,7 @@ void CPSolver::add_objective(IloModel &model)
     model.add(objective);
 }
 
-bool CPSolver::solve_cp_model(IloCP &cp, IloModel &model, Solution &solution)
+bool CPSolver::solve_cp_model(IloCP &cp, const IloModel &model) const
 {
     IloEnv env = model.getEnv();
 
@@ -175,7 +171,7 @@ bool CPSolver::solve_cp_model(IloCP &cp, IloModel &model, Solution &solution)
     return cp.solve();
 }
 
-void CPSolver::set_solution(IloCP &cp, Solution &solution)
+void CPSolver::set_solution(const IloCP &cp, Solution &solution) const
 {
     switch (cp.getStatus())
     {
@@ -203,7 +199,7 @@ void CPSolver::set_solution(IloCP &cp, Solution &solution)
     }
 }
 
-void CPSolver::set_solution_helper(IloCP &cp, Solution &solution)
+void CPSolver::set_solution_helper(const IloCP &cp, Solution &solution) const
 {
     solution.makespan = cp.getObjValue();
     solution.gap = cp.getObjGap();

@@ -40,6 +40,7 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
         try
         {
             solution.makespan = static_cast<size_t>(std::round(solution_ilp.criterion));
+            solution.gap = solution_ilp.gap;
             auto job_start_times = lookup(solution_ilp.solution, variable_mapping_ilp.s);
             auto job_durations = lookup(solution_ilp.solution, variable_mapping_ilp.p);
             auto job_modes = lookup(solution_ilp.solution, variable_mapping_ilp.x);

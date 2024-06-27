@@ -14,21 +14,21 @@ class CPSolver
     Solution solve();
 
   private:
-    void init_resource_arrays(IloModel &);
-    void add_job_start_time_constraints(IloModel &);
-    void add_job_modes_constraints(IloModel &);
-    void add_precedence_constraints(IloModel &);
-    void add_capacity_constraints(IloModel &);
-    bool solve_cp_model(IloCP &cp, IloModel &, Solution &solution);
-    void set_solution(IloCP &cp, Solution &solution);
-    void set_solution_helper(IloCP &cp, Solution &solution);
-    void add_objective(IloModel &);
+    void init_resource_arrays(const IloModel &model);
+    void add_job_start_time_constraints(const IloModel &model);
+    void add_job_modes_constraints(const IloModel &model);
+    void add_precedence_constraints(const IloModel &model) const;
+    void add_capacity_constraints(const IloModel &model) const;
+    bool solve_cp_model(IloCP &cp, const IloModel &model) const;
+    void set_solution(const IloCP &cp, Solution &solution) const;
+    void set_solution_helper(const IloCP &cp, Solution &solution) const;
+    void add_objective(const IloModel &) const;
 
     const ProblemInstance &problem_instance;
     IloCumulFunctionExprArray processes;
     IloIntArray capacities;
     IloIntervalVarArray tasks;
     IloIntervalVarArray2 modes;
-    IloIntExprArray ends;
     IloIntExprArray starts;
+    IloIntExprArray ends;
 };
