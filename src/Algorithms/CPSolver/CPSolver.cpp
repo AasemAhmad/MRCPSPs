@@ -200,7 +200,6 @@ void CPSolver::set_solution_status(const IloCP &cp, Solution &solution) const
         break;
     case IloAlgorithm::Unknown:
         solution.solution_state = convert(MODEL_SOL_UNKNOWN);
-        break;
     }
 }
 

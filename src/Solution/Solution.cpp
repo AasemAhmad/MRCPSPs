@@ -78,7 +78,6 @@ std::string solution_state_as_string(const SolutionState &solution_state)
         break;
     case UNKNOWN:
         solution_state_str = "Unknown";
-        break;
     }
 
     return solution_state_str;
