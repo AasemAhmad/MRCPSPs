@@ -31,13 +31,26 @@ SolutionState convert(const MODEL_STATUS &ilp_status)
     case MODEL_SOL_INFEASIBLE:
         solution_state = INFEASIBLE;
         break;
-    default:
+    case MODEL_SOL_UNBOUNDED:
+        solution_state = UNBOUNDED;
+        break;
+    case MODEL_SOL_INFEASIBLE_OR_UNBOUNDED:
+        solution_state = INFEASIBLE_OR_UNBOUNDED;
+        break;
+    case MODEL_SOL_BOUNDED:
+        solution_state = BOUNDED;
+        break;
+    case MODEL_SOL_ERROR:
+        solution_state = ERROR;
+        break;
+    case MODEL_SOL_UNKNOWN:
         solution_state = UNKNOWN;
     }
+
     return solution_state;
 }
 
-std::string convert_solution_state_to_string(const SolutionState &solution_state)
+std::string solution_state_as_string(const SolutionState &solution_state)
 {
     std::string solution_state_str;
     switch (solution_state)
@@ -52,10 +65,22 @@ std::string convert_solution_state_to_string(const SolutionState &solution_state
     case INFEASIBLE:
         solution_state_str = "Infeasible";
         break;
+    case UNBOUNDED:
+        solution_state_str = "Unbounded";
+        break;
+    case INFEASIBLE_OR_UNBOUNDED:
+        solution_state_str = "Infeasible_or_unbounded";
+        break;
+    case BOUNDED:
+        solution_state_str = "Bounded";
+    case ERROR:
+        solution_state_str = "Error";
+        break;
     case UNKNOWN:
         solution_state_str = "Unknown";
         break;
     }
+
     return solution_state_str;
 }
 
@@ -76,7 +101,7 @@ std::string Solution::get_solution_as_string() const
                   << "Run Time: " << this->runtime << ", "
                   << "Gap: " << this->gap << ", "
                   << "Makespan: " << this->makespan << ", "
-                  << "State: " << convert_solution_state_to_string(this->solution_state) << "\n";
+                  << "State: " << solution_state_as_string(this->solution_state) << "\n";
 
     std::string job_allocations_string;
     for (const auto &job_allocation : job_allocations)
@@ -203,12 +228,11 @@ void write_statistics(const std::string &statistics_file, const std::string &ins
 
     static ResultWriter statistics_writer(statistics_file, statistics_file_header);
 
-    std::vector<ResultWriter::Row> statistics_row = {
-        {{"Instance_ID", instance_id},
-         {"Run_Time", std::to_string(solution.runtime)},
-         {"Gap", std::to_string(solution.gap)},
-         {"Makespan", std::to_string(solution.makespan)},
-         {"Status", convert_solution_state_to_string(solution.solution_state)}}};
+    std::vector<ResultWriter::Row> statistics_row = {{{"Instance_ID", instance_id},
+                                                      {"Run_Time", std::to_string(solution.runtime)},
+                                                      {"Gap", std::to_string(solution.gap)},
+                                                      {"Makespan", std::to_string(solution.makespan)},
+                                                      {"Status", solution_state_as_string(solution.solution_state)}}};
 
     if (!statistics_writer.sheet_exists(sheet_name))
     {

@@ -22,7 +22,7 @@ Solution ProblemSolverILP::solve(Solution &init_solution, double rel_gap, double
     PPK_ASSERT_ERROR(Settings::Solver::USE_GUROBI, "Solver was not selected");
 
     solver = std::make_unique<GurobiSolver>();
-    PPK_ASSERT_ERROR(solver, "Failed to create solver");
+
     solver->initialize_local_environments(1u);
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();

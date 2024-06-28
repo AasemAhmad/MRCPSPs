@@ -1,21 +1,37 @@
 #pragma once
 
-#include "ModelSolutionStatus.hpp"
 #include "ProblemInstance/ProblemInstance.hpp"
 #include "Settings.hpp"
 #include <map>
 #include <string>
+
+enum class MODEL_STATUS
+{
+    MODEL_SOL_OPTIMAL,
+    MODEL_SOL_FEASIBLE,
+    MODEL_SOL_INFEASIBLE,
+    MODEL_SOL_UNBOUNDED,
+    MODEL_SOL_BOUNDED,
+    MODEL_SOL_INFEASIBLE_OR_UNBOUNDED,
+    MODEL_SOL_UNKNOWN,
+    MODEL_SOL_ERROR
+};
 
 enum class SolutionState
 {
     OPTIMAL,
     FEASIBLE,
     INFEASIBLE,
+    UNBOUNDED,
+    INFEASIBLE_OR_UNBOUNDED,
+    BOUNDED,
+    ERROR,
     UNKNOWN
 };
 
 SolutionState convert(const MODEL_STATUS &ilp_status);
-std::string convert_solution_state_to_string(const SolutionState &solution_state);
+
+std::string solution_state_as_string(const SolutionState &solution_state);
 
 struct JobAllocation
 {

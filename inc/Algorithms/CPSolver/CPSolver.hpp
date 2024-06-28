@@ -19,9 +19,9 @@ class CPSolver
     void add_job_modes_constraints(const IloModel &model);
     void add_precedence_constraints(const IloModel &model) const;
     void add_capacity_constraints(const IloModel &model) const;
-    bool solve_cp_model(IloCP &cp, const IloModel &model) const;
+    void solve_cp_model(IloCP &cp, const IloModel &model) const;
+    void set_solution_status(const IloCP &cp, Solution &solution) const;
     void set_solution(const IloCP &cp, Solution &solution) const;
-    void set_solution_helper(const IloCP &cp, Solution &solution) const;
     void add_objective(const IloModel &) const;
 
     const ProblemInstance &problem_instance;

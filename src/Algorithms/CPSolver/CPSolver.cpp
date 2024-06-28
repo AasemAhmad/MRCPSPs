@@ -2,11 +2,8 @@
 #include "Algorithms/CPSolver/CPSolver.hpp"
 #include "Settings.hpp"
 #include "Shared/Exceptions.hpp"
-#include "Shared/Utils.hpp"
 #include "Solution/Solution.hpp"
 #include "loguru.hpp"
-#include <memory>
-#include <vector>
 
 CPSolver::CPSolver(const ProblemInstance &problem_instance) : problem_instance(problem_instance) {}
 
@@ -35,14 +32,18 @@ Solution CPSolver::solve()
         add_objective(model);
 
         IloCP cp(model);
+        solve_cp_model(cp, model);
+        set_solution_status(cp, solution);
 
-        if (bool solved = solve_cp_model(cp, model); solved)
+        if (solution.solution_state == SolutionState::OPTIMAL || solution.solution_state == SolutionState::FEASIBLE)
         {
             set_solution(cp, solution);
         } else
         {
-            LOG_F(INFO, "CP Model is not solvable within the time limit of %g", Settings::Solver::MAX_RUNTIME);
+            LOG_F(INFO, "CP Model is not solvable within the time limit of %f, solution status: %s",
+                  Settings::Solver::MAX_RUNTIME, solution_state_as_string(solution.solution_state).c_str());
         }
+
         cp.end();
 
     } catch (IloException &ex)
@@ -109,7 +110,7 @@ void CPSolver::add_job_modes_constraints(const IloModel &model)
                 processes[res_index] += IloPulse(alt, res_units);
                 ++res_index;
             }
-            
+
             alt.setOptional();
             modes[job_index].add(alt);
         }
@@ -155,7 +156,7 @@ void CPSolver::add_objective(const IloModel &model) const
     model.add(objective);
 }
 
-bool CPSolver::solve_cp_model(IloCP &cp, const IloModel &model) const
+void CPSolver::solve_cp_model(IloCP &cp, const IloModel &model) const
 {
     IloEnv env = model.getEnv();
 
@@ -168,10 +169,10 @@ bool CPSolver::solve_cp_model(IloCP &cp, const IloModel &model) const
     cp.setWarning(env.getNullStream());
     cp.setError(env.getNullStream());
 
-    return cp.solve();
+    cp.solve();
 }
 
-void CPSolver::set_solution(const IloCP &cp, Solution &solution) const
+void CPSolver::set_solution_status(const IloCP &cp, Solution &solution) const
 {
     switch (cp.getStatus())
     {
@@ -185,21 +186,25 @@ void CPSolver::set_solution(const IloCP &cp, Solution &solution) const
     case IloAlgorithm::Infeasible:
         solution.solution_state = convert(MODEL_SOL_INFEASIBLE);
         break;
-    case IloAlgorithm::Unknown:
-        solution.solution_state = convert(MODEL_SOL_UNKNOWN);
-        break;
     case IloAlgorithm::Unbounded:
         solution.solution_state = convert(MODEL_SOL_UNBOUNDED);
         break;
-    }
-
-    if (cp.getStatus() == IloAlgorithm::Optimal || cp.getStatus() == IloAlgorithm::Feasible)
-    {
-        set_solution_helper(cp, solution);
+    case IloAlgorithm::InfeasibleOrUnbounded:
+        solution.solution_state = convert(MODEL_SOL_INFEASIBLE_OR_UNBOUNDED);
+        break;
+    case IloAlgorithm::Bounded:
+        solution.solution_state = convert(MODEL_SOL_BOUNDED);
+        break;
+    case IloAlgorithm::Error:
+        solution.solution_state = convert(MODEL_SOL_ERROR);
+        break;
+    case IloAlgorithm::Unknown:
+        solution.solution_state = convert(MODEL_SOL_UNKNOWN);
+        break;
     }
 }
 
-void CPSolver::set_solution_helper(const IloCP &cp, Solution &solution) const
+void CPSolver::set_solution(const IloCP &cp, Solution &solution) const
 {
     solution.makespan = cp.getObjValue();
     solution.gap = cp.getObjGap();
@@ -207,7 +212,7 @@ void CPSolver::set_solution_helper(const IloCP &cp, Solution &solution) const
     solution.runtime = cp.getInfo(IloCP::TotalTime);
 
     size_t job_index = 0;
-    for (const auto &job : problem_instance.job_queue)
+    for (const JobConstPtr &job : problem_instance.job_queue)
     {
         JobAllocation job_allocation;
         job_allocation.job_id = job->id;

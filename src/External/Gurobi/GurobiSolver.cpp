@@ -186,40 +186,42 @@ SolutionILP GurobiSolver::solve_ilp(Solution &init_solution, const ILPSolverMode
 
         switch (grb_model.get(GRB_IntAttr_Status))
         {
+            using enum MODEL_STATUS;
         case GRB_OPTIMAL:
             if (gap == 0.0)
             {
-                solution_ilp.status = MODEL_STATUS::MODEL_SOL_OPTIMAL;
+                solution_ilp.status = MODEL_SOL_OPTIMAL;
             } else
             {
-                solution_ilp.status = MODEL_STATUS::MODEL_SOL_FEASIBLE;
+                solution_ilp.status = MODEL_SOL_FEASIBLE;
             }
             break;
         case GRB_TIME_LIMIT:
             if (grb_model.get(GRB_IntAttr_SolCount) > 0)
             {
-                solution_ilp.status = MODEL_STATUS::MODEL_SOL_FEASIBLE;
+                solution_ilp.status = MODEL_SOL_FEASIBLE;
             } else
             {
-                solution_ilp.status = MODEL_STATUS::MODEL_SOL_UNKNOWN;
+                solution_ilp.status = MODEL_SOL_UNKNOWN;
             }
             break;
         case GRB_INFEASIBLE: {
-            solution_ilp.status = MODEL_STATUS::MODEL_SOL_INFEASIBLE;
+            solution_ilp.status = MODEL_SOL_INFEASIBLE;
             break;
         }
         case GRB_UNBOUNDED: {
-            solution_ilp.status = MODEL_STATUS::MODEL_SOL_UNBOUNDED;
+            solution_ilp.status = MODEL_SOL_UNBOUNDED;
             break;
         }
         default:
-            solution_ilp.status = MODEL_STATUS::MODEL_SOL_UNKNOWN;
+            solution_ilp.status = MODEL_SOL_UNKNOWN;
         }
 
         if (solution_ilp.status == MODEL_STATUS::MODEL_SOL_OPTIMAL ||
             solution_ilp.status == MODEL_STATUS::MODEL_SOL_FEASIBLE)
         {
             solution_ilp.criterion = grb_model.get(GRB_DoubleAttr_ObjVal);
+
             for (long v = 0; v < grb_model.get(GRB_IntAttr_NumVars); ++v)
             {
                 solution_ilp.solution.push_back(vars[v].get(GRB_DoubleAttr_X));
