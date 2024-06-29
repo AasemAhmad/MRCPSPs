@@ -69,69 +69,26 @@ static bool parse_generator_option_parameters(const std::string &generator_optio
     PPK_ASSERT_ERROR(json_doc_generator_options.IsObject(), "Invalid generator options: %s Not a JSON object",
                      generator_options.c_str());
 
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("instances_directory_path"));
-    LOG_F(INFO, "instances_directory_path =  %s", json_doc_generator_options["instances_directory_path"].GetString());
-    Settings::INSTANCES_DIRECTORY_PATH = json_doc_generator_options["instances_directory_path"].GetString();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("nb_resources"));
-    LOG_F(INFO, "nb_resources =  %d", json_doc_generator_options["nb_resources"].GetUint());
-    Settings::Generator::NB_RESOURCES = json_doc_generator_options["nb_resources"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_resource_capacity"));
-    LOG_F(INFO, "min_resource_capacity =  %d", json_doc_generator_options["min_resource_capacity"].GetUint());
-    Settings::Generator::MIN_RESOURCE_CAPACITY = json_doc_generator_options["min_resource_capacity"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_resource_capacity"));
-    LOG_F(INFO, "max_resource_capacity =  %d", json_doc_generator_options["max_resource_capacity"].GetUint());
-    Settings::Generator::MAX_RESOURCE_CAPACITY = json_doc_generator_options["max_resource_capacity"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("nb_jobs"), "nb_jobs field is not found");
-    LOG_F(INFO, "nb_jobs =  %d", json_doc_generator_options["nb_jobs"].GetUint());
-    Settings::Generator::NB_JOBS = json_doc_generator_options["nb_jobs"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_nb_succ"), "min_nb_succ field is not found");
-    LOG_F(INFO, "min_nb_succ =  %d", json_doc_generator_options["min_nb_succ"].GetUint());
-    Settings::Generator::MIN_NB_SUCCESSORS = json_doc_generator_options["min_nb_succ"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_succ"), "max_nb_succ field is not found");
-    LOG_F(INFO, "max_nb_succ =  %d", json_doc_generator_options["max_nb_succ"].GetUint());
-    Settings::Generator::MAX_NB_SUCCESSORS = json_doc_generator_options["max_nb_succ"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_modes"));
-    LOG_F(INFO, "max_nb_modes =  %d", json_doc_generator_options["max_nb_modes"].GetUint());
-    Settings::Generator::MAX_NB_MODES = json_doc_generator_options["max_nb_modes"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_nb_modes"));
-    LOG_F(INFO, "min_nb_modes =  %d", json_doc_generator_options["min_nb_modes"].GetUint());
-    Settings::Generator::MIN_NB_MODES = json_doc_generator_options["min_nb_modes"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_execution_time"));
-    LOG_F(INFO, "max_execution_time =  %d", json_doc_generator_options["max_execution_time"].GetUint());
-    Settings::Generator::MAX_EXECUTION_TIME = json_doc_generator_options["max_execution_time"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_execution_time"));
-    LOG_F(INFO, "min_execution_time =  %d", json_doc_generator_options["min_execution_time"].GetUint());
-    Settings::Generator::MIN_EXECUTION_TIME = json_doc_generator_options["min_execution_time"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("max_nb_resource_units_per_job"));
-    LOG_F(INFO, "max_nb_resource_units_per_job =  %d",
-          json_doc_generator_options["max_nb_resource_units_per_job"].GetUint());
+    Settings::INSTANCES_DIRECTORY_PATH =
+        parse_scalar<std::string>(json_doc_generator_options, "instances_directory_path");
+    Settings::Generator::NB_RESOURCES = parse_scalar<size_t>(json_doc_generator_options, "nb_resources");
+    Settings::Generator::MIN_RESOURCE_CAPACITY =
+        parse_scalar<size_t>(json_doc_generator_options, "min_resource_capacity");
+    Settings::Generator::MAX_RESOURCE_CAPACITY =
+        parse_scalar<size_t>(json_doc_generator_options, "max_resource_capacity");
+    Settings::Generator::NB_JOBS = parse_scalar<size_t>(json_doc_generator_options, "nb_jobs");
+    Settings::Generator::MIN_NB_SUCCESSORS = parse_scalar<size_t>(json_doc_generator_options, "min_nb_succ");
+    Settings::Generator::MAX_NB_SUCCESSORS = parse_scalar<size_t>(json_doc_generator_options, "max_nb_succ");
+    Settings::Generator::MAX_NB_MODES = parse_scalar<size_t>(json_doc_generator_options, "max_nb_modes");
+    Settings::Generator::MIN_NB_MODES = parse_scalar<size_t>(json_doc_generator_options, "min_nb_modes");
+    Settings::Generator::MAX_EXECUTION_TIME = parse_scalar<size_t>(json_doc_generator_options, "max_execution_time");
+    Settings::Generator::MIN_EXECUTION_TIME = parse_scalar<size_t>(json_doc_generator_options, "min_execution_time");
     Settings::Generator::MAX_NB_RESOURCE_UNITS_PER_JOB =
-        json_doc_generator_options["max_nb_resource_units_per_job"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("min_nb_resource_units_per_job"));
-    LOG_F(INFO, "min_nb_resource_units_per_job =  %d",
-          json_doc_generator_options["min_nb_resource_units_per_job"].GetUint());
+        parse_scalar<size_t>(json_doc_generator_options, "max_nb_resource_units_per_job");
     Settings::Generator::MIN_NB_RESOURCE_UNITS_PER_JOB =
-        json_doc_generator_options["min_nb_resource_units_per_job"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("first_instance_index"));
-    LOG_F(INFO, "first_instance_index =  %d", json_doc_generator_options["first_instance_index"].GetUint());
-    Settings::FIRST_INSTANCE_INDEX = json_doc_generator_options["first_instance_index"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_generator_options.HasMember("last_instance_index"));
-    LOG_F(INFO, "last_instance_index =  %d", json_doc_generator_options["last_instance_index"].GetUint());
-    Settings::LAST_INSTANCE_INDEX = json_doc_generator_options["last_instance_index"].GetUint();
+        parse_scalar<size_t>(json_doc_generator_options, "min_nb_resource_units_per_job");
+    Settings::FIRST_INSTANCE_INDEX = parse_scalar<size_t>(json_doc_generator_options, "first_instance_index");
+    Settings::LAST_INSTANCE_INDEX = parse_scalar<size_t>(json_doc_generator_options, "last_instance_index");
 
     return true;
 }
@@ -143,67 +100,38 @@ static bool parse_solver_option_parameters(const std::string &solver_options)
     PPK_ASSERT_ERROR(json_doc_solver_options.IsObject(), "Invalid solver options: %s Not a JSON object",
                      solver_options.c_str());
 
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("instance_file_name"));
-    LOG_F(INFO, "instance_file_name =  %s", json_doc_solver_options["instance_file_name"].GetString());
-    Settings::INSTANCE_NAME = json_doc_solver_options["instance_file_name"].GetString();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("instances_directory_path"));
-    LOG_F(INFO, "instances_directory_path =  %s", json_doc_solver_options["instances_directory_path"].GetString());
-    Settings::INSTANCES_DIRECTORY_PATH = json_doc_solver_options["instances_directory_path"].GetString();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("first_instance_index"));
-    LOG_F(INFO, "first_instance_index =  %d", json_doc_solver_options["first_instance_index"].GetUint());
-    Settings::FIRST_INSTANCE_INDEX = json_doc_solver_options["first_instance_index"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("last_instance_index"));
-    LOG_F(INFO, "last_instance_index =  %d", json_doc_solver_options["last_instance_index"].GetUint());
-    Settings::LAST_INSTANCE_INDEX = json_doc_solver_options["last_instance_index"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("results_directory"));
-    LOG_F(INFO, "results_directory =  %s", json_doc_solver_options["results_directory"].GetString());
-    Settings::Solver::RESULTS_DIRECTORY = json_doc_solver_options["results_directory"].GetString();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("nb_of_thread"));
-    LOG_F(INFO, "nb_of_thread =  %d", json_doc_solver_options["nb_of_thread"].GetUint());
-    Settings::Solver::NB_THREADS = json_doc_solver_options["nb_of_thread"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("use_gurobi") || json_doc_solver_options.HasMember("use_cp"));
+    Settings::INSTANCE_NAME = parse_scalar<std::string>(json_doc_solver_options, "instance_file_name");
+    Settings::INSTANCES_DIRECTORY_PATH = parse_scalar<std::string>(json_doc_solver_options, "instances_directory_path");
+    Settings::FIRST_INSTANCE_INDEX = parse_scalar<size_t>(json_doc_solver_options, "first_instance_index");
+    Settings::LAST_INSTANCE_INDEX = parse_scalar<size_t>(json_doc_solver_options, "last_instance_index");
+    Settings::Solver::RESULTS_DIRECTORY = parse_scalar<std::string>(json_doc_solver_options, "results_directory");
+    Settings::Solver::NB_THREADS = parse_scalar<size_t>(json_doc_solver_options, "nb_of_thread");
+    Settings::Solver::MAX_RUNTIME = parse_scalar<double>(json_doc_solver_options, "max_runtime");
+    Settings::Solver::INIT_ILP_SOLUTION = parse_scalar<bool>(json_doc_solver_options, "init_ilp_solution");
+    Settings::Solver::ILP_RELATIVE_GAP = parse_scalar<double>(json_doc_solver_options, "ilp_relative_gap");
 
     if (json_doc_solver_options.HasMember("use_gurobi"))
     {
-        LOG_F(INFO, "use_gurobi =  %s", json_doc_solver_options["use_gurobi"].GetBool() ? "true" : "false");
-        Settings::Solver::USE_GUROBI = json_doc_solver_options["use_gurobi"].GetBool();
+        Settings::Solver::USE_GUROBI = parse_scalar<bool>(json_doc_solver_options, "use_gurobi");
     }
 
-    if (json_doc_solver_options.HasMember("use_cp"))
+    if (json_doc_solver_options.HasMember("use_gurobi"))
     {
-        LOG_F(INFO, "use_cp =  %s", json_doc_solver_options["use_cp"].GetBool() ? "true" : "false");
-        Settings::Solver::USE_CP = json_doc_solver_options["use_cp"].GetBool();
+        Settings::Solver::USE_CP = parse_scalar<bool>(json_doc_solver_options, "use_cp");
     }
+
+    PPK_ASSERT_ERROR(Settings::Solver::USE_GUROBI || Settings::Solver::USE_CP, "Either Gurobi or CP must be selected");
 
     if (json_doc_solver_options.HasMember("check_solution"))
     {
-        LOG_F(INFO, "check_solution =  %s", json_doc_solver_options["check_solution"].GetBool() ? "true" : "false");
-        Settings::Solver::CHECK_SOLUTION = json_doc_solver_options["check_solution"].GetBool();
+
+        Settings::Solver::CHECK_SOLUTION = parse_scalar<bool>(json_doc_solver_options, "check_solution");
     }
 
     if (json_doc_solver_options.HasMember("draw_gantt_chart"))
     {
-        LOG_F(INFO, "draw_gantt_chart =  %s", json_doc_solver_options["draw_gantt_chart"].GetBool() ? "true" : "false");
-        Settings::Solver::DRAW_GANTT_CHART = json_doc_solver_options["draw_gantt_chart"].GetBool();
+        Settings::Solver::DRAW_GANTT_CHART = parse_scalar<bool>(json_doc_solver_options, "draw_gantt_chart");
     }
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("max_runtime"));
-    LOG_F(INFO, "max_runtime =  %d", json_doc_solver_options["max_runtime"].GetUint());
-    Settings::Solver::MAX_RUNTIME = json_doc_solver_options["max_runtime"].GetUint();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("init_ilp_solution"));
-    LOG_F(INFO, "init_ilp_solution =  %s", json_doc_solver_options["init_ilp_solution"].GetBool() ? "true" : "false");
-    Settings::Solver::INIT_ILP_SOLUTION = json_doc_solver_options["init_ilp_solution"].GetBool();
-
-    PPK_ASSERT_ERROR(json_doc_solver_options.HasMember("ilp_relative_gap"));
-    LOG_F(INFO, "ilp_relative_gap =  %f", json_doc_solver_options["ilp_relative_gap"].GetDouble());
-    Settings::Solver::ILP_RELATIVE_GAP = json_doc_solver_options["ilp_relative_gap"].GetDouble();
 
     return true;
 }

@@ -1,4 +1,3 @@
-
 #include "Algorithms/CPSolver/CPSolver.hpp"
 #include "Settings.hpp"
 #include "Shared/Exceptions.hpp"
